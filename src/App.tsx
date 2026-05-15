@@ -27,6 +27,7 @@ function App() {
     ...s,
     title: slideTitles[s.id] ?? s.title,
     isCurrent: s.id === currentSlideId,
+    generationCount: (editHistory[s.id] ?? []).length,
   }))
 
   const currentSlide = slides.find((s) => s.id === currentSlideId)
@@ -73,7 +74,6 @@ function App() {
     >
       <SlideCanvas
         title={currentSlide?.title ?? '未命名演示文稿'}
-        generationCount={currentTasks.length}
       />
     </AppShell>
   )

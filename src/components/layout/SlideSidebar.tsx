@@ -6,6 +6,7 @@ interface SlideItem {
   title: string
   thumbnailUrl?: string
   isCurrent: boolean
+  generationCount: number
 }
 
 interface SlideSidebarProps {
@@ -146,6 +147,15 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
                 <span className="absolute top-1 left-1.5 text-xs text-warm-700/50 font-medium">
                   {slide.pageNumber}
                 </span>
+                {slide.generationCount > 0 && (
+                  <div className="absolute top-1 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-warm-900/70 text-white text-[10px] font-medium backdrop-blur-sm">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="2" width="15" height="15" rx="2" />
+                      <rect x="7" y="7" width="15" height="15" rx="2" />
+                    </svg>
+                    <span>{slide.generationCount}</span>
+                  </div>
+                )}
               </div>
             </button>
             {slide.title && (
