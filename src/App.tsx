@@ -15,6 +15,8 @@ import { ImageEditService } from './services/image/imageEditService'
 import { assetRepository } from './services/storage/assetRepository'
 import { slideRepository } from './services/storage/slideRepository'
 import { importImages, SUPPORTED_IMAGE_TYPES } from './services/importer/importImages'
+import { importPdf } from './services/importer/importPdf'
+import { exportPptx } from './services/export/exportPptx'
 import './App.css'
 
 function App() {
@@ -60,6 +62,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [originalAssetInfo, setOriginalAssetInfo] = useState<{ assetId: string; thumbnailUrl?: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const pdfInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     loadDecks()
@@ -110,6 +113,27 @@ function App() {
     fileInputRef.current?.click()
   }, [])
 
+  const handleImportPdf = useCallback(() => {
+    pdfInputRef.current?.click()
+  }, [])
+
+  const handleExportPptx = useCallback(async () => {
+    if (!currentDeckId) return
+    try {
+      const blob = await exportPptx(currentDeckId)
+      const deck = decks.find((d) => d.id === currentDeckId)
+      const filename = `${deck?.title ?? '演示文稿'}.pptx`
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '导出失败')
+    }
+  }, [currentDeckId, decks])
+
   const handleNewProject = useCallback(async () => {
     const deck = await createDeck('未命名演示文稿')
     setCurrentDeckId(deck.id)
@@ -148,6 +172,24 @@ function App() {
       fileInputRef.current.value = ''
     }
   }, [currentDeckId, loadDecks, setCurrentDeckId, loadSlidesForDeck])
+
+  const handlePdfChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      const deckId = await importPdf(file)
+      await loadDecks()
+      setCurrentDeckId(deckId)
+      await loadSlidesForDeck(deckId)
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '导入 PDF 失败')
+    }
+
+    if (pdfInputRef.current) {
+      pdfInputRef.current.value = ''
+    }
+  }, [loadDecks, setCurrentDeckId, loadSlidesForDeck])
 
   const handleSlideSelect = useCallback((id: string) => {
     setCurrentSlideId(id)
@@ -313,6 +355,13 @@ function App() {
         onChange={handleFileChange}
         className="hidden"
       />
+      <input
+        ref={pdfInputRef}
+        type="file"
+        accept="application/pdf"
+        onChange={handlePdfChange}
+        className="hidden"
+      />
       <ApiSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ImageContextMenu />
       <AppShell
@@ -325,6 +374,8 @@ function App() {
             onSlideRename={renameSlide}
             onToggleCollapse={onToggleCollapse}
             onImport={handleImport}
+            onImportPdf={handleImportPdf}
+            onExportPptx={handleExportPptx}
             onNewProject={handleNewProject}
             isLoading={isLoading}
             decks={decks}
