@@ -10,6 +10,7 @@ export interface EditTask {
   id: string
   prompt: string
   thumbnailUrl?: string
+  resultAssetId?: string
   status: EditTaskStatus
   createdAt: string
 }
@@ -29,6 +30,7 @@ interface EditorActions {
   addEditTask: (slideId: string, task: { prompt: string; status: EditTaskStatus; thumbnailUrl?: string }) => string
   updateEditTaskStatus: (slideId: string, taskId: string, status: EditTaskStatus) => void
   updateEditTaskThumbnail: (slideId: string, taskId: string, thumbnailUrl: string) => void
+  completeEditTask: (slideId: string, taskId: string, resultAssetId: string, thumbnailUrl: string) => void
   getSlideEditHistory: (slideId: string) => EditTask[]
   loadEditHistory: (slideId: string) => Promise<void>
   resetEditor: () => void
@@ -49,6 +51,7 @@ function toEditTaskRecord(task: EditTask): EditTaskRecord {
     prompt: task.prompt,
     status: task.status,
     createdAt: task.createdAt,
+    resultAssetId: task.resultAssetId,
   }
 }
 
@@ -133,6 +136,23 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
     })
   },
 
+  completeEditTask(slideId: string, taskId: string, resultAssetId: string, thumbnailUrl: string) {
+    set((state) => {
+      const tasks = state.editHistory[slideId]
+      if (!tasks) return state
+      const updated = tasks.map((t) =>
+        t.id === taskId ? { ...t, status: 'done' as EditTaskStatus, resultAssetId, thumbnailUrl } : t,
+      )
+      persistEditTasks(slideId, updated)
+      return {
+        editHistory: {
+          ...state.editHistory,
+          [slideId]: updated,
+        },
+      }
+    })
+  },
+
   getSlideEditHistory(slideId: string) {
     return get().editHistory[slideId] ?? []
   },
@@ -146,6 +166,7 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
       prompt: r.prompt,
       status: r.status,
       createdAt: r.createdAt,
+      resultAssetId: r.resultAssetId,
     }))
     set((state) => ({
       editHistory: {

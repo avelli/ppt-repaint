@@ -35,6 +35,7 @@ function App() {
   const editHistory = useEditorStore((s) => s.editHistory)
   const addEditTask = useEditorStore((s) => s.addEditTask)
   const updateEditTaskStatus = useEditorStore((s) => s.updateEditTaskStatus)
+  const completeEditTask = useEditorStore((s) => s.completeEditTask)
 
   const isGenerating = useGenerationStore((s) => s.isGenerating)
   const startGeneration = useGenerationStore((s) => s.startGeneration)
@@ -190,10 +191,10 @@ function App() {
       })
 
       finishGeneration()
-      updateEditTaskStatus(currentSlideId, taskId, 'done')
 
-      await loadSlidesForDeck(currentDeckId!)
-      loadSlideImage(currentSlideId)
+      const thumb = await assetRepository.getThumbnail(result.assetId)
+      const thumbnailUrl = thumb ? URL.createObjectURL(thumb.blob) : undefined
+      completeEditTask(currentSlideId, taskId, result.assetId, thumbnailUrl ?? '')
 
       if (result.revisedPrompt) {
         setProgress('')
@@ -211,7 +212,7 @@ function App() {
   }, [
     currentSlideId, currentSlide, apiKey, baseUrl, model, apiMode, quality, size, outputFormat, moderation, timeout,
     addEditTask, startGeneration, setProgress, finishGeneration, setError,
-    updateEditTaskStatus, currentDeckId, loadSlidesForDeck, loadSlideImage,
+    updateEditTaskStatus, completeEditTask,
   ])
 
   const acceptTypes = Array.from(SUPPORTED_IMAGE_TYPES).join(',')

@@ -86,7 +86,6 @@ export class ImageEditService {
 
     const updatedSlide: SlideRecord = {
       ...slide,
-      currentAssetId: assetId,
       versions: [...slide.versions, newVersion],
     }
 
