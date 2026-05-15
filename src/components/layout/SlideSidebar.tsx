@@ -74,13 +74,20 @@ function EditableTitle({ slideId, title, onRename }: { slideId: string; title: s
   }
 
   return (
-    <p
-      onClick={() => { setEditing(true); setValue(title) }}
-      className="text-sm text-warm-800 font-medium mt-1.5 px-1 truncate cursor-pointer hover:text-sage-600 transition-colors"
-      title="点击重命名"
-    >
-      {title}
-    </p>
+    <div className="flex items-center gap-1 mt-1.5 px-1">
+      <p className="text-sm text-warm-800 font-medium truncate flex-1">
+        {title}
+      </p>
+      <button
+        onClick={() => { setEditing(true); setValue(title) }}
+        className="w-5 h-5 shrink-0 rounded flex items-center justify-center text-warm-700/40 hover:text-sage-600 opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label="重命名"
+      >
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+        </svg>
+      </button>
+    </div>
   )
 }
 
