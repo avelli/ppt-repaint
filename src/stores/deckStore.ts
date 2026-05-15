@@ -34,6 +34,7 @@ interface DeckStore {
   renameSlide: (id: string, title: string) => void
   loadSlideImage: (slideId: string) => Promise<string | undefined>
   selectSlideCandidate: (slideId: string, assetId: string) => Promise<void>
+  reorderSlides: (fromIndex: number, toIndex: number) => Promise<void>
   getOriginalAssetId: (slideId: string) => Promise<string | undefined>
   cleanup: () => void
 }
@@ -188,6 +189,35 @@ export const useDeckStore = create<DeckStore>()((set, get) => ({
         s.id === slideId ? { ...s, currentAssetId: assetId, imageUrl, thumbnailUrl } : s,
       ),
     }))
+  },
+
+  async reorderSlides(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex) return
+
+    const { slides, currentDeckId, decks } = get()
+    const reordered = [...slides]
+    const [moved] = reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+
+    const updated = reordered.map((s, i) => ({ ...s, pageNumber: i + 1 }))
+    set({ slides: updated })
+
+    if (!currentDeckId) return
+    const deck = decks.find((d) => d.id === currentDeckId)
+    if (deck) {
+      const newDeck = { ...deck, slides: updated.map((s) => s.id), updatedAt: Date.now() }
+      await deckRepository.update(newDeck)
+      set((state) => ({
+        decks: state.decks.map((d) => d.id === newDeck.id ? newDeck : d),
+      }))
+    }
+
+    for (const slide of updated) {
+      const record = await slideRepository.getById(slide.id)
+      if (record && record.pageNumber !== slide.pageNumber) {
+        await slideRepository.update({ ...record, pageNumber: slide.pageNumber })
+      }
+    }
   },
 
   async getOriginalAssetId(slideId: string) {

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import type { Deck } from '../../types/deck'
 
 interface SlideItem {
@@ -16,6 +16,7 @@ interface SlideSidebarProps {
   collapsed: boolean
   onSlideSelect: (id: string) => void
   onSlideRename: (id: string, newTitle: string) => void
+  onReorderSlides: (fromIndex: number, toIndex: number) => void
   onToggleCollapse: () => void
   onImport?: () => void
   onImportPdf?: () => void
@@ -309,8 +310,41 @@ function EditableTitle({ slideId, title, onRename }: { slideId: string; title: s
   )
 }
 
-export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, pdfProgress, exportProgress, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
+export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onReorderSlides, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, pdfProgress, exportProgress, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
   const currentDeck = decks?.find((d) => d.id === currentDeckId)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dropIndex, setDropIndex] = useState<number | null>(null)
+
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', String(index))
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (dragIndex === null) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const midY = rect.top + rect.height / 2
+    const target = e.clientY < midY ? index : index + 1
+    setDropIndex(target === dragIndex || target === dragIndex + 1 ? null : target)
+  }, [dragIndex])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    if (dragIndex !== null && dropIndex !== null) {
+      const to = dropIndex > dragIndex ? dropIndex - 1 : dropIndex
+      onReorderSlides(dragIndex, to)
+    }
+    setDragIndex(null)
+    setDropIndex(null)
+  }, [dragIndex, dropIndex, onReorderSlides])
+
+  const handleDragEnd = useCallback(() => {
+    setDragIndex(null)
+    setDropIndex(null)
+  }, [])
 
   if (collapsed) {
     return (
@@ -410,15 +444,26 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
             )}
           </div>
         )}
-        {slides.map((slide) => (
-          <div key={slide.id} className="group">
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className="group"
+            draggable
+            onDragStart={(e) => handleDragStart(e, index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDrop={handleDrop}
+            onDragEnd={handleDragEnd}
+          >
+            {dropIndex === index && (
+              <div className="h-0.5 bg-sage-500 rounded-full mx-2 -mt-2 mb-2" />
+            )}
             <button
               onClick={() => onSlideSelect(slide.id)}
               className={`w-full rounded-2xl overflow-hidden border-2 transition-all ${
                 slide.isCurrent
                   ? 'border-sage-400 shadow-md'
                   : 'border-transparent hover:border-cream-400 hover:shadow-sm'
-              }`}
+              } ${dragIndex === index ? 'opacity-40' : ''}`}
             >
               <div
                 className="aspect-[16/9] bg-cream-100 overflow-hidden flex items-center justify-center relative"
@@ -454,6 +499,9 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
             )}
           </div>
         ))}
+        {dropIndex === slides.length && (
+          <div className="h-0.5 bg-sage-500 rounded-full mx-2" />
+        )}
       </div>
     </div>
   )

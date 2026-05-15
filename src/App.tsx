@@ -30,6 +30,7 @@ function App() {
   const setCurrentDeckId = useDeckStore((s) => s.setCurrentDeckId)
   const loadSlidesForDeck = useDeckStore((s) => s.loadSlidesForDeck)
   const loadSlideImage = useDeckStore((s) => s.loadSlideImage)
+  const reorderSlides = useDeckStore((s) => s.reorderSlides)
   const renameSlide = useDeckStore((s) => s.renameSlide)
   const selectSlideCandidate = useDeckStore((s) => s.selectSlideCandidate)
   const getOriginalAssetId = useDeckStore((s) => s.getOriginalAssetId)
@@ -380,6 +381,7 @@ function App() {
             collapsed={collapsed}
             onSlideSelect={handleSlideSelect}
             onSlideRename={renameSlide}
+            onReorderSlides={reorderSlides}
             onToggleCollapse={onToggleCollapse}
             onImport={handleImport}
             onImportPdf={handleImportPdf}
