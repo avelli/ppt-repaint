@@ -5,23 +5,27 @@ import { RightEditPanel, type EditTask } from './components/layout/RightEditPane
 import { SlideCanvas } from './components/slide/SlideCanvas'
 import './App.css'
 
-const mockSlides = [
-  { id: '1', pageNumber: 1, title: '2026年国内短漫行业发展蓝皮书', isCurrent: true },
-  { id: '2', pageNumber: 2, title: '行业核心结论总览', isCurrent: false },
-  { id: '3', pageNumber: 3, title: '2026年短漫行业核心数据', isCurrent: false },
-  { id: '4', pageNumber: 4, title: '漫剧赛道市场竞争格局', isCurrent: false },
-  { id: '5', pageNumber: 5, title: '内容创作生态分析', isCurrent: false },
-  { id: '6', pageNumber: 6, title: '用户画像与消费趋势', isCurrent: false },
-  { id: '7', pageNumber: 7, title: '平台分发策略对比', isCurrent: false },
-  { id: '8', pageNumber: 8, title: '投资建议与风险提示', isCurrent: false },
+const initialSlides = [
+  { id: '1', pageNumber: 1, title: '2026年国内短漫行业发展蓝皮书' },
+  { id: '2', pageNumber: 2, title: '行业核心结论总览' },
+  { id: '3', pageNumber: 3, title: '2026年短漫行业核心数据' },
+  { id: '4', pageNumber: 4, title: '漫剧赛道市场竞争格局' },
+  { id: '5', pageNumber: 5, title: '内容创作生态分析' },
+  { id: '6', pageNumber: 6, title: '用户画像与消费趋势' },
+  { id: '7', pageNumber: 7, title: '平台分发策略对比' },
+  { id: '8', pageNumber: 8, title: '投资建议与风险提示' },
 ]
 
 function App() {
   const [currentSlideId, setCurrentSlideId] = useState('1')
+  const [slideTitles, setSlideTitles] = useState<Record<string, string>>(
+    Object.fromEntries(initialSlides.map((s) => [s.id, s.title]))
+  )
   const [editHistory, setEditHistory] = useState<Record<string, EditTask[]>>({})
 
-  const slides = mockSlides.map((s) => ({
+  const slides = initialSlides.map((s) => ({
     ...s,
+    title: slideTitles[s.id] ?? s.title,
     isCurrent: s.id === currentSlideId,
   }))
 
@@ -41,6 +45,10 @@ function App() {
     }))
   }, [currentSlideId])
 
+  const handleSlideRename = useCallback((id: string, newTitle: string) => {
+    setSlideTitles((prev) => ({ ...prev, [id]: newTitle }))
+  }, [])
+
   return (
     <AppShell
       sidebar={({ collapsed, onToggleCollapse }) => (
@@ -49,6 +57,7 @@ function App() {
           totalPages={slides.length}
           collapsed={collapsed}
           onSlideSelect={setCurrentSlideId}
+          onSlideRename={handleSlideRename}
           onToggleCollapse={onToggleCollapse}
         />
       )}

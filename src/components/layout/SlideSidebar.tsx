@@ -1,3 +1,5 @@
+import { useState, useRef, useEffect } from 'react'
+
 interface SlideItem {
   id: string
   pageNumber: number
@@ -11,6 +13,7 @@ interface SlideSidebarProps {
   totalPages: number
   collapsed: boolean
   onSlideSelect: (id: string) => void
+  onSlideRename: (id: string, newTitle: string) => void
   onToggleCollapse: () => void
 }
 
@@ -32,7 +35,56 @@ function SidebarToggleButton({ collapsed, onClick }: { collapsed: boolean; onCli
   )
 }
 
-export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onToggleCollapse }: SlideSidebarProps) {
+function EditableTitle({ slideId, title, onRename }: { slideId: string; title: string; onRename: (id: string, newTitle: string) => void }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(title)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [editing])
+
+  const commit = () => {
+    setEditing(false)
+    const trimmed = value.trim()
+    if (trimmed && trimmed !== title) {
+      onRename(slideId, trimmed)
+    } else {
+      setValue(title)
+    }
+  }
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') { setValue(title); setEditing(false) }
+        }}
+        className="text-sm text-warm-800 font-medium mt-1.5 px-1 w-full bg-white border border-sage-400 rounded outline-none"
+      />
+    )
+  }
+
+  return (
+    <p
+      onClick={() => { setEditing(true); setValue(title) }}
+      className="text-sm text-warm-800 font-medium mt-1.5 px-1 truncate cursor-pointer hover:text-sage-600 transition-colors"
+      title="点击重命名"
+    >
+      {title}
+    </p>
+  )
+}
+
+export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse }: SlideSidebarProps) {
   if (collapsed) {
     return (
       <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY} gap-2`}>
@@ -90,9 +142,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onT
               </div>
             </button>
             {slide.title && (
-              <p className="text-sm text-warm-800 font-medium mt-1.5 px-1 truncate">
-                {slide.title}
-              </p>
+              <EditableTitle slideId={slide.id} title={slide.title} onRename={onSlideRename} />
             )}
           </div>
         ))}
