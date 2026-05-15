@@ -10,6 +10,7 @@ export interface SlideRecord {
   deckId: string
   pageNumber: number
   currentAssetId: string
+  title?: string
   versions: SlideVersionRecord[]
 }
 

@@ -106,7 +106,7 @@ export const useDeckStore = create<DeckStore>()((set, get) => ({
           id: record.id,
           deckId: record.deckId,
           pageNumber: record.pageNumber,
-          title: `第 ${record.pageNumber} 页`,
+          title: record.title ?? `第 ${record.pageNumber} 页`,
           thumbnailUrl,
           currentAssetId: record.currentAssetId,
         }
@@ -132,6 +132,11 @@ export const useDeckStore = create<DeckStore>()((set, get) => ({
     set((state) => ({
       slides: state.slides.map((s) => s.id === id ? { ...s, title } : s),
     }))
+    slideRepository.getById(id).then((record) => {
+      if (record) {
+        slideRepository.update({ ...record, title })
+      }
+    })
   },
 
   async loadSlideImage(slideId: string) {
