@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useCallback, useRef, useEffect } from 'react'
+import { type ReactNode, useState, useCallback, useRef } from 'react'
 
 interface AppShellProps {
   sidebar: ReactNode

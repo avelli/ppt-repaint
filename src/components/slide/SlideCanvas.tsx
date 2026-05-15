@@ -4,7 +4,7 @@ interface SlideCanvasProps {
   onInspectClick?: () => void
 }
 
-export function SlideCanvas({ title, imageUrl, onInspectClick }: SlideCanvasProps) {
+export function SlideCanvas({ title, imageUrl }: SlideCanvasProps) {
   return (
     <div className="flex flex-col h-full p-8">
       <header className="flex items-center justify-between mb-6 shrink-0">
