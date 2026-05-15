@@ -5,6 +5,16 @@ export interface SlideVersionRecord {
   createdAt: number
 }
 
+export type EditTaskStatus = 'done' | 'generating' | 'error'
+
+export interface EditTaskRecord {
+  id: string
+  prompt: string
+  status: EditTaskStatus
+  createdAt: string
+  resultAssetId?: string
+}
+
 export interface SlideRecord {
   id: string
   deckId: string
@@ -12,6 +22,7 @@ export interface SlideRecord {
   currentAssetId: string
   title?: string
   versions: SlideVersionRecord[]
+  editTasks?: EditTaskRecord[]
 }
 
 export interface ThumbnailRecord {

@@ -7,6 +7,7 @@ interface RightEditPanelProps {
   collapsed: boolean
   onToggleCollapse: () => void
   slideTitle: string
+  currentSlideImageUrl?: string
   tasks: EditTask[]
   onSubmit: (prompt: string) => void
   onOpenSettings: () => void
@@ -76,7 +77,25 @@ function TaskCardItem({ task }: { task: EditTask }) {
   )
 }
 
-export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks, onSubmit, onOpenSettings, isGenerating }: RightEditPanelProps) {
+function CurrentSlidePreview({ imageUrl, title }: { imageUrl?: string; title: string }) {
+  if (!imageUrl) return null
+  return (
+    <div className="px-3 pt-3 pb-1 shrink-0">
+      <p className="text-xs text-warm-700/60 font-medium mb-2">当前使用 PPT</p>
+      <div className="flex gap-3 p-3 rounded-xl border border-cream-300 bg-white">
+        <div className="w-24 h-16 rounded-lg bg-cream-200 shrink-0 overflow-hidden flex items-center justify-center">
+          <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <p className="text-sm text-warm-800 font-medium truncate">{title}</p>
+          <span className="text-xs text-warm-700/50 mt-1">当前页面</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, currentSlideImageUrl, tasks, onSubmit, onOpenSettings, isGenerating }: RightEditPanelProps) {
   const [inputValue, setInputValue] = useState('')
 
   const handleSubmit = () => {
@@ -112,6 +131,9 @@ export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks,
           <PanelToggleButton collapsed={false} onClick={onToggleCollapse} />
         </div>
       </header>
+
+      {/* Current Slide Preview */}
+      <CurrentSlidePreview imageUrl={currentSlideImageUrl} title={slideTitle} />
 
       {/* Task Card List */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>

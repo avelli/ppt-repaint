@@ -251,6 +251,7 @@ function App() {
             collapsed={collapsed}
             onToggleCollapse={onToggleCollapse}
             slideTitle={currentSlide?.title ?? '未命名'}
+            currentSlideImageUrl={currentSlide?.imageUrl}
             tasks={currentTasks}
             onSubmit={handleSubmitEdit}
             onOpenSettings={() => setSettingsOpen(true)}

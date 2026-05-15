@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { generateId } from '../utils/id'
+import { slideRepository } from '../services/storage/slideRepository'
+import type { EditTaskRecord } from '../types/storage'
 
 export type EditMode = 'whole-page' | 'mask'
 export type EditTaskStatus = 'done' | 'generating' | 'error'
@@ -26,7 +28,9 @@ interface EditorActions {
   clearInstruction: () => void
   addEditTask: (slideId: string, task: { prompt: string; status: EditTaskStatus; thumbnailUrl?: string }) => string
   updateEditTaskStatus: (slideId: string, taskId: string, status: EditTaskStatus) => void
+  updateEditTaskThumbnail: (slideId: string, taskId: string, thumbnailUrl: string) => void
   getSlideEditHistory: (slideId: string) => EditTask[]
+  loadEditHistory: (slideId: string) => Promise<void>
   resetEditor: () => void
 }
 
@@ -39,11 +43,32 @@ const initialState: EditorState = {
   editHistory: {},
 }
 
+function toEditTaskRecord(task: EditTask): EditTaskRecord {
+  return {
+    id: task.id,
+    prompt: task.prompt,
+    status: task.status,
+    createdAt: task.createdAt,
+  }
+}
+
+function persistEditTasks(slideId: string, tasks: EditTask[]) {
+  const records = tasks.map(toEditTaskRecord)
+  slideRepository.getById(slideId).then((record) => {
+    if (record) {
+      slideRepository.update({ ...record, editTasks: records })
+    }
+  })
+}
+
 export const useEditorStore = create<EditorStore>()((set, get) => ({
   ...initialState,
 
   setCurrentSlideId(id: string | null) {
     set({ currentSlideId: id })
+    if (id) {
+      get().loadEditHistory(id)
+    }
   },
 
   setEditMode(mode: EditMode) {
@@ -66,12 +91,16 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
       status: task.status,
       createdAt: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
     }
-    set((state) => ({
-      editHistory: {
-        ...state.editHistory,
-        [slideId]: [newTask, ...(state.editHistory[slideId] ?? [])],
-      },
-    }))
+    set((state) => {
+      const updated = [newTask, ...(state.editHistory[slideId] ?? [])]
+      persistEditTasks(slideId, updated)
+      return {
+        editHistory: {
+          ...state.editHistory,
+          [slideId]: updated,
+        },
+      }
+    })
     return newTask.id
   },
 
@@ -79,10 +108,26 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
     set((state) => {
       const tasks = state.editHistory[slideId]
       if (!tasks) return state
+      const updated = tasks.map((t) => t.id === taskId ? { ...t, status } : t)
+      persistEditTasks(slideId, updated)
       return {
         editHistory: {
           ...state.editHistory,
-          [slideId]: tasks.map((t) => t.id === taskId ? { ...t, status } : t),
+          [slideId]: updated,
+        },
+      }
+    })
+  },
+
+  updateEditTaskThumbnail(slideId: string, taskId: string, thumbnailUrl: string) {
+    set((state) => {
+      const tasks = state.editHistory[slideId]
+      if (!tasks) return state
+      const updated = tasks.map((t) => t.id === taskId ? { ...t, thumbnailUrl } : t)
+      return {
+        editHistory: {
+          ...state.editHistory,
+          [slideId]: updated,
         },
       }
     })
@@ -90,6 +135,24 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
 
   getSlideEditHistory(slideId: string) {
     return get().editHistory[slideId] ?? []
+  },
+
+  async loadEditHistory(slideId: string) {
+    if (get().editHistory[slideId]) return
+    const record = await slideRepository.getById(slideId)
+    if (!record?.editTasks?.length) return
+    const tasks: EditTask[] = record.editTasks.map((r) => ({
+      id: r.id,
+      prompt: r.prompt,
+      status: r.status,
+      createdAt: r.createdAt,
+    }))
+    set((state) => ({
+      editHistory: {
+        ...state.editHistory,
+        [slideId]: tasks,
+      },
+    }))
   },
 
   resetEditor() {
