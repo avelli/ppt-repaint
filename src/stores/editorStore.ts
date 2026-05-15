@@ -24,7 +24,7 @@ interface EditorActions {
   setEditMode: (mode: EditMode) => void
   setInstruction: (instruction: string) => void
   clearInstruction: () => void
-  addEditTask: (slideId: string, task: { prompt: string; status: EditTaskStatus; thumbnailUrl?: string }) => void
+  addEditTask: (slideId: string, task: { prompt: string; status: EditTaskStatus; thumbnailUrl?: string }) => string
   updateEditTaskStatus: (slideId: string, taskId: string, status: EditTaskStatus) => void
   getSlideEditHistory: (slideId: string) => EditTask[]
   resetEditor: () => void
@@ -72,6 +72,7 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
         [slideId]: [newTask, ...(state.editHistory[slideId] ?? [])],
       },
     }))
+    return newTask.id
   },
 
   updateEditTaskStatus(slideId: string, taskId: string, status: EditTaskStatus) {

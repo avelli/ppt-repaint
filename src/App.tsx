@@ -1,10 +1,17 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { SlideSidebar } from './components/layout/SlideSidebar'
 import { RightEditPanel } from './components/layout/RightEditPanel'
 import { SlideCanvas } from './components/slide/SlideCanvas'
+import { ApiSettingsModal } from './components/editor/ApiSettingsModal'
 import { useDeckStore } from './stores/deckStore'
 import { useEditorStore } from './stores/editorStore'
+import { useSettingsStore } from './stores/settingsStore'
+import { useGenerationStore } from './stores/generationStore'
+import { OpenAIImageProvider } from './services/image/openaiImageProvider'
+import { ImageEditService } from './services/image/imageEditService'
+import { assetRepository } from './services/storage/assetRepository'
+import { slideRepository } from './services/storage/slideRepository'
 import { importImages, SUPPORTED_IMAGE_TYPES } from './services/importer/importImages'
 import './App.css'
 
@@ -27,7 +34,25 @@ function App() {
   const setCurrentSlideId = useEditorStore((s) => s.setCurrentSlideId)
   const editHistory = useEditorStore((s) => s.editHistory)
   const addEditTask = useEditorStore((s) => s.addEditTask)
+  const updateEditTaskStatus = useEditorStore((s) => s.updateEditTaskStatus)
 
+  const isGenerating = useGenerationStore((s) => s.isGenerating)
+  const startGeneration = useGenerationStore((s) => s.startGeneration)
+  const setProgress = useGenerationStore((s) => s.setProgress)
+  const setError = useGenerationStore((s) => s.setError)
+  const finishGeneration = useGenerationStore((s) => s.finishGeneration)
+
+  const apiKey = useSettingsStore((s) => s.apiKey)
+  const baseUrl = useSettingsStore((s) => s.baseUrl)
+  const model = useSettingsStore((s) => s.model)
+  const apiMode = useSettingsStore((s) => s.apiMode)
+  const quality = useSettingsStore((s) => s.quality)
+  const size = useSettingsStore((s) => s.size)
+  const outputFormat = useSettingsStore((s) => s.outputFormat)
+  const moderation = useSettingsStore((s) => s.moderation)
+  const timeout = useSettingsStore((s) => s.timeout)
+
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -116,10 +141,78 @@ function App() {
 
   const currentTasks = currentSlideId ? (editHistory[currentSlideId] ?? []) : []
 
-  const handleSubmitEdit = (prompt: string) => {
-    if (!currentSlideId) return
-    addEditTask(currentSlideId, { prompt, status: 'done' })
-  }
+  const handleSubmitEdit = useCallback(async (prompt: string) => {
+    if (!currentSlideId || !currentSlide) return
+
+    if (!apiKey) {
+      setSettingsOpen(true)
+      return
+    }
+
+    const taskId = addEditTask(currentSlideId, { prompt, status: 'generating' })
+
+    const controller = startGeneration()
+    setProgress('正在调用 AI 编辑...')
+
+    try {
+      let imageBlob: Blob
+
+      if (currentSlide.currentAssetId) {
+        const asset = await assetRepository.get(currentSlide.currentAssetId)
+        if (asset) {
+          imageBlob = asset.blob
+        } else {
+          throw new Error('当前幻灯片没有可编辑的图片')
+        }
+      } else if (currentSlide.imageUrl) {
+        const resp = await fetch(currentSlide.imageUrl)
+        imageBlob = await resp.blob()
+      } else {
+        throw new Error('当前幻灯片没有可编辑的图片')
+      }
+
+      const provider = new OpenAIImageProvider({ apiKey, baseUrl, model, timeout, apiMode })
+      const editService = new ImageEditService({
+        provider,
+        assetRepository,
+        slideRepository,
+      })
+
+      const result = await editService.editSlideImage({
+        slideId: currentSlideId,
+        image: imageBlob,
+        prompt,
+        quality,
+        size,
+        outputFormat,
+        moderation,
+        signal: controller.signal,
+      })
+
+      finishGeneration()
+      updateEditTaskStatus(currentSlideId, taskId, 'done')
+
+      await loadSlidesForDeck(currentDeckId!)
+      loadSlideImage(currentSlideId)
+
+      if (result.revisedPrompt) {
+        setProgress('')
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '生成失败'
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        updateEditTaskStatus(currentSlideId, taskId, 'error')
+        finishGeneration()
+        return
+      }
+      setError(message)
+      updateEditTaskStatus(currentSlideId, taskId, 'error')
+    }
+  }, [
+    currentSlideId, currentSlide, apiKey, baseUrl, model, apiMode, quality, size, outputFormat, moderation, timeout,
+    addEditTask, startGeneration, setProgress, finishGeneration, setError,
+    updateEditTaskStatus, currentDeckId, loadSlidesForDeck, loadSlideImage,
+  ])
 
   const acceptTypes = Array.from(SUPPORTED_IMAGE_TYPES).join(',')
 
@@ -133,6 +226,7 @@ function App() {
         onChange={handleFileChange}
         className="hidden"
       />
+      <ApiSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <AppShell
         sidebar={({ collapsed, onToggleCollapse }) => (
           <SlideSidebar
@@ -159,6 +253,8 @@ function App() {
             slideTitle={currentSlide?.title ?? '未命名'}
             tasks={currentTasks}
             onSubmit={handleSubmitEdit}
+            onOpenSettings={() => setSettingsOpen(true)}
+            isGenerating={isGenerating}
           />
         )}
       >

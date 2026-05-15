@@ -9,6 +9,8 @@ interface RightEditPanelProps {
   slideTitle: string
   tasks: EditTask[]
   onSubmit: (prompt: string) => void
+  onOpenSettings: () => void
+  isGenerating?: boolean
 }
 
 const HEADER_PX = 'px-3'
@@ -24,6 +26,21 @@ function PanelToggleButton({ collapsed, onClick }: { collapsed: boolean; onClick
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warm-700">
         <rect x="3" y="3" width="18" height="18" rx="2" />
         <path d="M15 3v18" />
+      </svg>
+    </button>
+  )
+}
+
+function SettingsButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-9 h-9 rounded-lg border border-cream-400 bg-cream-50 flex items-center justify-center hover:bg-cream-200 transition-colors"
+      aria-label="API 设置"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warm-700">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
       </svg>
     </button>
   )
@@ -59,12 +76,12 @@ function TaskCardItem({ task }: { task: EditTask }) {
   )
 }
 
-export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks, onSubmit }: RightEditPanelProps) {
+export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks, onSubmit, onOpenSettings, isGenerating }: RightEditPanelProps) {
   const [inputValue, setInputValue] = useState('')
 
   const handleSubmit = () => {
     const trimmed = inputValue.trim()
-    if (!trimmed) return
+    if (!trimmed || isGenerating) return
     onSubmit(trimmed)
     setInputValue('')
   }
@@ -78,8 +95,9 @@ export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks,
 
   if (collapsed) {
     return (
-      <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY}`}>
+      <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY} gap-2`}>
         <PanelToggleButton collapsed onClick={onToggleCollapse} />
+        <SettingsButton onClick={onOpenSettings} />
       </div>
     )
   }
@@ -89,7 +107,10 @@ export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks,
       {/* Header */}
       <header className={`flex items-center justify-between ${HEADER_PX} ${HEADER_PY} shrink-0 border-b border-cream-300/60`}>
         <span className="text-sm text-warm-700 font-medium truncate mr-2">{slideTitle}</span>
-        <PanelToggleButton collapsed={false} onClick={onToggleCollapse} />
+        <div className="flex items-center gap-1.5">
+          <SettingsButton onClick={onOpenSettings} />
+          <PanelToggleButton collapsed={false} onClick={onToggleCollapse} />
+        </div>
       </header>
 
       {/* Task Card List */}
@@ -117,17 +138,24 @@ export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks,
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="描述你想要的修改效果..."
-            className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-cream-400 bg-white px-4 py-2.5 text-sm text-warm-900 placeholder:text-cream-500 resize-none focus:outline-none focus:border-sage-400 transition-colors"
+            disabled={isGenerating}
+            className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-cream-400 bg-white px-4 py-2.5 text-sm text-warm-900 placeholder:text-cream-500 resize-none focus:outline-none focus:border-sage-400 transition-colors disabled:opacity-50"
           />
           <button
             onClick={handleSubmit}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || isGenerating}
             className="w-10 h-10 rounded-xl bg-sage-500 flex items-center justify-center hover:bg-sage-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
+            {isGenerating ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" className="animate-spin text-white">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray="31.4 31.4" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            )}
           </button>
         </div>
       </div>
