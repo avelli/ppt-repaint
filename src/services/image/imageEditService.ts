@@ -38,6 +38,8 @@ export interface ImageEditServiceDeps {
 const DEFAULT_WIDTH = 1536
 const DEFAULT_HEIGHT = 1024
 
+const PROMPT_SUFFIX = ' The output image must fill the entire canvas edge-to-edge with no white borders, margins, or padding on any side. Maintain the exact same aspect ratio and composition as the input image.'
+
 export class ImageEditService {
   private provider: ImageProvider
   private assetRepository: AssetRepositoryLike
@@ -65,7 +67,7 @@ export class ImageEditService {
     if (moderation) editOptions.moderation = moderation
     if (signal) editOptions.signal = signal
 
-    const result = await this.provider.editImage(image, prompt, editOptions)
+    const result = await this.provider.editImage(image, prompt + PROMPT_SUFFIX, editOptions)
 
     const asset: ImageAsset = {
       id: generateId(),
