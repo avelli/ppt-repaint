@@ -430,7 +430,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
                   <img
                     src={slide.thumbnailUrl}
                     alt={`第 ${slide.pageNumber} 页`}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="text-cream-500 text-sm">暂无预览</div>
