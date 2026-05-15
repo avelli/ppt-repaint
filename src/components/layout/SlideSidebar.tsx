@@ -315,12 +315,12 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
     return (
       <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY} gap-2`}>
         <SidebarToggleButton collapsed onClick={onToggleCollapse} />
-        <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto scrollbar-hide flex-1 min-h-0" style={{ scrollbarWidth: 'none' }}>
           {slides.map((slide) => (
             <button
               key={slide.id}
               onClick={() => onSlideSelect(slide.id)}
-              className={`w-9 h-9 rounded-lg border flex items-center justify-center text-xs font-medium transition-colors ${
+              className={`w-9 h-9 shrink-0 rounded-lg border flex items-center justify-center text-xs font-medium transition-colors ${
                 slide.isCurrent
                   ? 'border-sage-400 bg-sage-400 text-white'
                   : 'border-cream-400 bg-cream-50 text-warm-700 hover:bg-cream-200'
