@@ -255,63 +255,7 @@ function DeckTitleBar({ title, decks, currentDeckId, onDeckSelect, onRename, onD
   )
 }
 
-function EditableTitle({ slideId, title, onRename }: { slideId: string; title: string; onRename: (id: string, newTitle: string) => void }) {
-  const [editing, setEditing] = useState(false)
-  const [value, setValue] = useState(title)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus()
-      inputRef.current?.select()
-    }
-  }, [editing])
-
-  const commit = () => {
-    setEditing(false)
-    const trimmed = value.trim()
-    if (trimmed && trimmed !== title) {
-      onRename(slideId, trimmed)
-    } else {
-      setValue(title)
-    }
-  }
-
-  if (editing) {
-    return (
-      <input
-        ref={inputRef}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') commit()
-          if (e.key === 'Escape') { setValue(title); setEditing(false) }
-        }}
-        className="text-sm text-warm-800 font-medium mt-1.5 px-1 w-full bg-white border border-sage-400 rounded outline-none"
-      />
-    )
-  }
-
-  return (
-    <div className="flex items-center gap-1 mt-1.5 px-1">
-      <p className="text-sm text-warm-800 font-medium truncate flex-1">
-        {title}
-      </p>
-      <button
-        onClick={() => { setEditing(true); setValue(title) }}
-        className="w-5 h-5 shrink-0 rounded flex items-center justify-center text-warm-700/40 hover:text-sage-600 opacity-0 group-hover:opacity-100 transition-opacity"
-        aria-label="重命名"
-      >
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-        </svg>
-      </button>
-    </div>
-  )
-}
-
-export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onReorderSlides, onInsertIndexChange, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, pdfProgress, exportProgress, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
+export function SlideSidebar({ slides, collapsed, onSlideSelect, onReorderSlides, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, pdfProgress, exportProgress, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
   const currentDeck = decks?.find((d) => d.id === currentDeckId)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
