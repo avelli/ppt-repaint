@@ -23,6 +23,8 @@ interface SlideSidebarProps {
   decks?: Deck[]
   currentDeckId?: string | null
   onDeckSelect?: (id: string) => void
+  onDeckRename?: (newTitle: string) => void
+  onDeckDelete?: () => void
 }
 
 const HEADER_PX = 'px-3'
@@ -71,6 +73,146 @@ function NewProjectButton({ onClick }: { onClick: () => void }) {
         <line x1="9" y1="14" x2="15" y2="14" />
       </svg>
     </button>
+  )
+}
+
+interface DeckTitleBarProps {
+  title: string
+  decks?: Deck[]
+  currentDeckId?: string | null
+  onDeckSelect?: (id: string) => void
+  onRename?: (newTitle: string) => void
+  onDelete?: () => void
+}
+
+function DeckTitleBar({ title, decks, currentDeckId, onDeckSelect, onRename, onDelete }: DeckTitleBarProps) {
+  const [editing, setEditing] = useState(false)
+  const [selecting, setSelecting] = useState(false)
+  const [value, setValue] = useState(title)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const toggleBtnRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    setValue(title)
+  }, [title])
+
+  useEffect(() => {
+    if (editing) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [editing])
+
+  useEffect(() => {
+    if (!selecting) return
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(target) &&
+        toggleBtnRef.current && !toggleBtnRef.current.contains(target)
+      ) {
+        setSelecting(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [selecting])
+
+  const commit = () => {
+    setEditing(false)
+    const trimmed = value.trim()
+    if (trimmed && trimmed !== title && onRename) {
+      onRename(trimmed)
+    } else {
+      setValue(title)
+    }
+  }
+
+  return (
+    <div className="relative flex items-center gap-1.5 px-3 py-2 shrink-0 border-b border-cream-300/60">
+      {onDeckSelect && decks && (
+        <button
+          ref={toggleBtnRef}
+          onClick={() => setSelecting((v) => !v)}
+          className={`w-7 h-7 shrink-0 rounded-lg flex items-center justify-center transition-colors ${
+            selecting
+              ? 'text-sage-600 bg-cream-200'
+              : 'text-warm-700/40 hover:text-sage-600 hover:bg-cream-200'
+          }`}
+          aria-label="切换项目"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="7 10 12 5 17 10" />
+            <polyline points="7 14 12 19 17 14" />
+          </svg>
+        </button>
+      )}
+      {editing ? (
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit()
+            if (e.key === 'Escape') { setValue(title); setEditing(false) }
+          }}
+          className="flex-1 min-w-0 text-sm text-warm-800 font-semibold bg-white border border-sage-400 rounded-lg px-2 py-1 outline-none"
+        />
+      ) : (
+        <p className="flex-1 min-w-0 text-sm text-warm-900 font-semibold truncate">
+          {title}
+        </p>
+      )}
+      {onRename && (
+        <button
+          onClick={() => { setEditing(true); setValue(title) }}
+          className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-warm-700/40 hover:text-sage-600 hover:bg-cream-200 transition-colors"
+          aria-label="重命名项目"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+          </svg>
+        </button>
+      )}
+      {onDelete && (
+        <button
+          onClick={onDelete}
+          className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-warm-700/40 hover:text-red-500 hover:bg-red-50 transition-colors"
+          aria-label="删除项目"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        </button>
+      )}
+      {decks && onDeckSelect && (
+        <div
+          ref={dropdownRef}
+          className={`absolute top-full left-[34px] right-[68px] mt-1 bg-white border border-cream-300 rounded-xl shadow-lg z-20 py-1 max-h-60 overflow-y-auto transition-all duration-200 origin-top ${
+            selecting
+              ? 'opacity-100 scale-y-100 pointer-events-auto'
+              : 'opacity-0 scale-y-90 pointer-events-none'
+          }`}
+        >
+          {decks.map((deck) => (
+            <button
+              key={deck.id}
+              onClick={() => { onDeckSelect(deck.id); setSelecting(false) }}
+              className={`w-full text-left pl-[13px] pr-3 py-2 text-sm transition-colors ${
+                deck.id === currentDeckId
+                  ? 'bg-sage-100 text-sage-700 font-medium'
+                  : 'text-warm-800 hover:bg-cream-100'
+              }`}
+            >
+              {deck.title}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -130,13 +272,13 @@ function EditableTitle({ slideId, title, onRename }: { slideId: string; title: s
   )
 }
 
-export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse, onImport, onNewProject, isLoading, decks, currentDeckId, onDeckSelect }: SlideSidebarProps) {
+export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse, onImport, onNewProject, isLoading, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
+  const currentDeck = decks?.find((d) => d.id === currentDeckId)
+
   if (collapsed) {
     return (
       <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY} gap-2`}>
         <SidebarToggleButton collapsed onClick={onToggleCollapse} />
-        {onNewProject && <NewProjectButton onClick={onNewProject} />}
-        {onImport && <ImportButton onClick={onImport} />}
         <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
           {slides.map((slide) => (
             <button
@@ -169,33 +311,18 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
         </span>
       </header>
 
-      {decks && decks.length > 0 && onDeckSelect && (
-        <div className="px-3 pb-2 shrink-0">
-          <div className="relative">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-700/50 pointer-events-none">
-              <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
-              <circle cx="8" cy="6" r="1.5" fill="currentColor" /><circle cx="16" cy="12" r="1.5" fill="currentColor" /><circle cx="10" cy="18" r="1.5" fill="currentColor" />
-            </svg>
-            <select
-              value={currentDeckId ?? ''}
-              onChange={(e) => onDeckSelect(e.target.value)}
-              className="w-full appearance-none bg-white border border-sage-400 rounded-xl py-2.5 pl-9 pr-9 text-sm text-warm-800 font-medium focus:outline-none focus:ring-2 focus:ring-sage-200 transition-colors cursor-pointer hover:bg-cream-50"
-            >
-              {decks.map((deck) => (
-                <option key={deck.id} value={deck.id}>
-                  {deck.title}
-                </option>
-              ))}
-            </select>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-700/40 pointer-events-none">
-              <polyline points="7 10 12 5 17 10" />
-              <polyline points="7 14 12 19 17 14" />
-            </svg>
-          </div>
-        </div>
+      {currentDeck && (
+        <DeckTitleBar
+          title={currentDeck.title}
+          decks={decks}
+          currentDeckId={currentDeckId}
+          onDeckSelect={onDeckSelect}
+          onRename={onDeckRename}
+          onDelete={onDeckDelete}
+        />
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
         {slides.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-cream-500">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
@@ -257,3 +384,4 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
     </div>
   )
 }
+

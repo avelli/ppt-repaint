@@ -15,6 +15,8 @@ function App() {
   const isLoading = useDeckStore((s) => s.isLoading)
   const loadDecks = useDeckStore((s) => s.loadDecks)
   const createDeck = useDeckStore((s) => s.createDeck)
+  const updateDeck = useDeckStore((s) => s.updateDeck)
+  const deleteDeck = useDeckStore((s) => s.deleteDeck)
   const setCurrentDeckId = useDeckStore((s) => s.setCurrentDeckId)
   const loadSlidesForDeck = useDeckStore((s) => s.loadSlidesForDeck)
   const loadSlideImage = useDeckStore((s) => s.loadSlideImage)
@@ -67,6 +69,18 @@ function App() {
     const deck = await createDeck('未命名演示文稿')
     setCurrentDeckId(deck.id)
   }, [createDeck, setCurrentDeckId])
+
+  const handleDeckRename = useCallback(async (newTitle: string) => {
+    if (!currentDeckId) return
+    const deck = decks.find((d) => d.id === currentDeckId)
+    if (!deck) return
+    await updateDeck({ ...deck, title: newTitle })
+  }, [currentDeckId, decks, updateDeck])
+
+  const handleDeckDelete = useCallback(async () => {
+    if (!currentDeckId) return
+    await deleteDeck(currentDeckId)
+  }, [currentDeckId, deleteDeck])
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -130,6 +144,8 @@ function App() {
             decks={decks}
             currentDeckId={currentDeckId}
             onDeckSelect={setCurrentDeckId}
+            onDeckRename={handleDeckRename}
+            onDeckDelete={handleDeckDelete}
           />
         )}
         rightPanel={({ collapsed, onToggleCollapse }) => (
