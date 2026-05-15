@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { generateId } from '../utils/id'
 import { slideRepository } from '../services/storage/slideRepository'
+import { assetRepository } from '../services/storage/assetRepository'
 import type { EditTaskRecord } from '../types/storage'
 
 export type EditMode = 'whole-page' | 'mask'
@@ -161,13 +162,25 @@ export const useEditorStore = create<EditorStore>()((set, get) => ({
     if (get().editHistory[slideId]) return
     const record = await slideRepository.getById(slideId)
     if (!record?.editTasks?.length) return
-    const tasks: EditTask[] = record.editTasks.map((r) => ({
-      id: r.id,
-      prompt: r.prompt,
-      status: r.status,
-      createdAt: r.createdAt,
-      resultAssetId: r.resultAssetId,
-    }))
+    const tasks: EditTask[] = await Promise.all(
+      record.editTasks.map(async (r) => {
+        let thumbnailUrl: string | undefined
+        if (r.resultAssetId) {
+          const thumb = await assetRepository.getThumbnail(r.resultAssetId)
+          if (thumb) {
+            thumbnailUrl = URL.createObjectURL(thumb.blob)
+          }
+        }
+        return {
+          id: r.id,
+          prompt: r.prompt,
+          status: r.status,
+          createdAt: r.createdAt,
+          resultAssetId: r.resultAssetId,
+          thumbnailUrl,
+        }
+      }),
+    )
     set((state) => ({
       editHistory: {
         ...state.editHistory,
