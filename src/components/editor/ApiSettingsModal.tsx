@@ -49,6 +49,8 @@ export function ApiSettingsModal({ open, onClose }: ApiSettingsModalProps) {
     }
   }, [open, settings.apiKey, settings.baseUrl, settings.model, settings.apiMode, settings.quality, settings.size, settings.outputFormat, settings.moderation, settings.timeout])
 
+  const backdropMouseDownTarget = useRef<EventTarget | null>(null)
+
   if (!open) return null
 
   const update = (patch: Partial<SettingsState>) => setLocal((prev) => ({ ...prev, ...patch }))
@@ -112,8 +114,6 @@ export function ApiSettingsModal({ open, onClose }: ApiSettingsModalProps) {
       timeout: 600,
     })
   }
-
-  const backdropMouseDownTarget = useRef<EventTarget | null>(null)
 
   const handleBackdropMouseDown = (e: React.MouseEvent) => {
     backdropMouseDownTarget.current = e.target
