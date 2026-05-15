@@ -21,6 +21,8 @@ interface RightEditPanelProps {
   onSelectCandidate: (candidate: SlideCandidate) => void
   onSubmit: (prompt: string) => void
   onOpenSettings: () => void
+  onRetry?: (candidate: SlideCandidate) => void
+  onDelete?: (candidate: SlideCandidate) => void
   isGenerating?: boolean
 }
 
@@ -57,23 +59,31 @@ function SettingsButton({ onClick }: { onClick: () => void }) {
   )
 }
 
-function CandidateCard({ candidate, onClick }: { candidate: SlideCandidate; onClick: () => void }) {
+function CandidateCard({ candidate, onClick, onRetry, onDelete }: {
+  candidate: SlideCandidate
+  onClick: () => void
+  onRetry?: () => void
+  onDelete?: () => void
+}) {
   const isLoading = candidate.status === 'generating'
   const isError = candidate.status === 'error'
 
   return (
-    <button
-      onClick={onClick}
-      disabled={isLoading || isError}
+    <div
       data-ctx-area={candidate.isOriginal ? 'canvas' : 'candidate'}
       data-ctx-src={candidate.thumbnailUrl || ''}
       data-ctx-asset-id={candidate.assetId || ''}
       data-ctx-task-id={candidate.isOriginal ? '' : candidate.id}
-      className={`flex gap-3 w-full p-3 rounded-xl border-2 text-left transition-all ${
+      className={`relative flex gap-3 w-full p-3 rounded-xl border-2 text-left transition-all ${
         candidate.isSelected
           ? 'border-sage-500 bg-sage-50/50 shadow-sm'
           : 'border-cream-300 bg-white hover:border-sage-300 hover:shadow-sm'
-      } ${isLoading ? 'opacity-60 cursor-wait' : ''} ${isError ? 'opacity-40 cursor-not-allowed' : ''}`}
+      } ${isLoading ? 'opacity-60 cursor-wait' : ''} ${isError ? 'opacity-60' : ''} ${
+        !isLoading && !isError ? 'cursor-pointer' : ''
+      }`}
+      onClick={!isLoading && !isError ? onClick : undefined}
+      role={!isLoading && !isError ? 'button' : undefined}
+      tabIndex={!isLoading && !isError ? 0 : undefined}
     >
       {/* 左侧缩略图 */}
       <div className="relative w-24 h-16 rounded-lg bg-cream-200 shrink-0 overflow-hidden flex items-center justify-center">
@@ -113,18 +123,42 @@ function CandidateCard({ candidate, onClick }: { candidate: SlideCandidate; onCl
             <span className="text-xs text-sage-600 font-medium">生成中...</span>
           )}
           {isError && (
-            <span className="text-xs text-red-500 font-medium">失败</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-red-500 font-medium">失败</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); onRetry?.() }}
+                className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-cream-200 transition-colors"
+                aria-label="重试"
+                title="重试"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warm-600">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete?.() }}
+                className="w-6 h-6 rounded-md flex items-center justify-center hover:bg-red-100 transition-colors"
+                aria-label="删除"
+                title="删除"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
           )}
           {!candidate.isSelected && !isLoading && !isError && (
             <span className="text-[10px] text-warm-500">点击使用</span>
           )}
         </div>
       </div>
-    </button>
+    </div>
   )
 }
 
-export function RightEditPanel({ collapsed, onToggleCollapse, candidates, onSelectCandidate, onSubmit, onOpenSettings, isGenerating }: RightEditPanelProps) {
+export function RightEditPanel({ collapsed, onToggleCollapse, candidates, onSelectCandidate, onSubmit, onOpenSettings, onRetry, onDelete, isGenerating }: RightEditPanelProps) {
   const [inputValue, setInputValue] = useState('')
 
   const handleSubmit = () => {
@@ -169,6 +203,8 @@ export function RightEditPanel({ collapsed, onToggleCollapse, candidates, onSele
               key={candidate.id}
               candidate={candidate}
               onClick={() => onSelectCandidate(candidate)}
+              onRetry={() => onRetry?.(candidate)}
+              onDelete={() => onDelete?.(candidate)}
             />
           ))
         ) : (

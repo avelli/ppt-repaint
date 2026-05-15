@@ -54,6 +54,7 @@ function App() {
   const addEditTask = useEditorStore((s) => s.addEditTask)
   const updateEditTaskStatus = useEditorStore((s) => s.updateEditTaskStatus)
   const completeEditTask = useEditorStore((s) => s.completeEditTask)
+  const removeEditTask = useEditorStore((s) => s.removeEditTask)
 
   const isGenerating = useGenerationStore((s) => s.isGenerating)
   const startGeneration = useGenerationStore((s) => s.startGeneration)
@@ -490,6 +491,17 @@ function App() {
     updateEditTaskStatus, completeEditTask,
   ])
 
+  const handleRetryCandidate = useCallback((candidate: SlideCandidate) => {
+    if (!currentSlideId || !candidate.prompt) return
+    removeEditTask(currentSlideId, candidate.id)
+    handleSubmitEdit(candidate.prompt)
+  }, [currentSlideId, removeEditTask, handleSubmitEdit])
+
+  const handleDeleteCandidate = useCallback((candidate: SlideCandidate) => {
+    if (!currentSlideId) return
+    removeEditTask(currentSlideId, candidate.id)
+  }, [currentSlideId, removeEditTask])
+
   const acceptTypes = Array.from(SUPPORTED_IMAGE_TYPES).join(',')
 
   return (
@@ -544,6 +556,8 @@ function App() {
             onSelectCandidate={handleSelectCandidate}
             onSubmit={handleSubmitEdit}
             onOpenSettings={() => setSettingsOpen(true)}
+            onRetry={handleRetryCandidate}
+            onDelete={handleDeleteCandidate}
             isGenerating={isGenerating}
           />
         )}
