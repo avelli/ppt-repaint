@@ -59,7 +59,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onT
                   : 'border-transparent hover:border-cream-400 hover:shadow-sm'
               }`}
             >
-              <div className="aspect-[16/9] bg-white rounded-xl m-1 overflow-hidden flex items-center justify-center">
+              <div className="aspect-[16/9] bg-white rounded-xl m-1 overflow-hidden flex items-center justify-center relative">
                 {slide.thumbnailUrl ? (
                   <img
                     src={slide.thumbnailUrl}
@@ -69,13 +69,13 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onT
                 ) : (
                   <div className="text-cream-500 text-sm">暂无预览</div>
                 )}
+                <span className="absolute top-1 left-1.5 text-xs text-warm-700/50 font-medium">
+                  {slide.pageNumber}
+                </span>
               </div>
             </button>
-            <div className="flex items-center gap-2 mt-2 px-1">
-              <span className="text-sm text-warm-700/60 font-medium">P{slide.pageNumber}</span>
-            </div>
             {slide.title && (
-              <p className="text-sm text-warm-800 font-medium mt-0.5 px-1 truncate">
+              <p className="text-sm text-warm-800 font-medium mt-1.5 px-1 truncate">
                 {slide.title}
               </p>
             )}
