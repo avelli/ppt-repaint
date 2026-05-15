@@ -1,32 +1,38 @@
-import { type ReactNode, useState, useCallback, useRef } from 'react'
+import { type ReactNode, useState, useCallback } from 'react'
 
 interface AppShellProps {
   sidebar: (props: { collapsed: boolean; onToggleCollapse: () => void }) => ReactNode
+  rightPanel: (props: { collapsed: boolean; onToggleCollapse: () => void }) => ReactNode
   children: ReactNode
 }
 
-const MIN_WIDTH = 200
-const MAX_WIDTH = 500
-const DEFAULT_WIDTH = 300
-const COLLAPSED_WIDTH = 60
+const LEFT_MIN_WIDTH = 200
+const LEFT_MAX_WIDTH = 500
+const LEFT_DEFAULT_WIDTH = 300
+const LEFT_COLLAPSED_WIDTH = 60
 
-export function AppShell({ sidebar, children }: AppShellProps) {
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH)
-  const [collapsed, setCollapsed] = useState(false)
+const RIGHT_MIN_WIDTH = 280
+const RIGHT_MAX_WIDTH = 520
+const RIGHT_DEFAULT_WIDTH = 360
+const RIGHT_COLLAPSED_WIDTH = 60
+
+function useResizable(defaultWidth: number, minWidth: number, maxWidth: number) {
+  const [width, setWidth] = useState(defaultWidth)
   const [isDragging, setIsDragging] = useState(false)
-  const sidebarRef = useRef<HTMLElement>(null)
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent, direction: 'left' | 'right') => {
     e.preventDefault()
     const startX = e.clientX
-    const startWidth = sidebarWidth
+    const startWidth = width
 
     setIsDragging(true)
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const delta = e.clientX - startX
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + delta))
-      setSidebarWidth(newWidth)
+    const handleMouseMove = (ev: MouseEvent) => {
+      const delta = direction === 'left'
+        ? ev.clientX - startX
+        : startX - ev.clientX
+      const newWidth = Math.min(maxWidth, Math.max(minWidth, startWidth + delta))
+      setWidth(newWidth)
     }
 
     const handleMouseUp = () => {
@@ -37,34 +43,40 @@ export function AppShell({ sidebar, children }: AppShellProps) {
 
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
-  }, [sidebarWidth])
+  }, [width, minWidth, maxWidth])
 
-  const toggleCollapse = useCallback(() => {
-    setCollapsed(prev => !prev)
-  }, [])
+  return { width, setWidth, isDragging, handleMouseDown }
+}
 
-  const effectiveWidth = collapsed ? COLLAPSED_WIDTH : sidebarWidth
+export function AppShell({ sidebar, rightPanel, children }: AppShellProps) {
+  const left = useResizable(LEFT_DEFAULT_WIDTH, LEFT_MIN_WIDTH, LEFT_MAX_WIDTH)
+  const right = useResizable(RIGHT_DEFAULT_WIDTH, RIGHT_MIN_WIDTH, RIGHT_MAX_WIDTH)
+  const [leftCollapsed, setLeftCollapsed] = useState(false)
+  const [rightCollapsed, setRightCollapsed] = useState(false)
+
+  const leftEffectiveWidth = leftCollapsed ? LEFT_COLLAPSED_WIDTH : left.width
+  const rightEffectiveWidth = rightCollapsed ? RIGHT_COLLAPSED_WIDTH : right.width
+  const anyDragging = left.isDragging || right.isDragging
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
-      {/* Sidebar */}
+      {/* Left Sidebar */}
       <aside
-        ref={sidebarRef}
         className="h-full border-r border-cream-400/60 bg-cream-100 flex flex-col shrink-0 overflow-hidden"
         style={{
-          width: effectiveWidth,
-          transition: isDragging ? 'none' : 'width 200ms ease-out',
+          width: leftEffectiveWidth,
+          transition: anyDragging ? 'none' : 'width 200ms ease-out',
         }}
       >
-        <div style={{ width: collapsed ? COLLAPSED_WIDTH : sidebarWidth, minWidth: collapsed ? COLLAPSED_WIDTH : sidebarWidth }} className="h-full">
-          {sidebar({ collapsed, onToggleCollapse: toggleCollapse })}
+        <div style={{ width: leftCollapsed ? LEFT_COLLAPSED_WIDTH : left.width, minWidth: leftCollapsed ? LEFT_COLLAPSED_WIDTH : left.width }} className="h-full">
+          {sidebar({ collapsed: leftCollapsed, onToggleCollapse: () => setLeftCollapsed(prev => !prev) })}
         </div>
       </aside>
 
-      {/* Resize handle */}
-      {!collapsed && (
+      {/* Left Resize Handle */}
+      {!leftCollapsed && (
         <div
-          onMouseDown={handleMouseDown}
+          onMouseDown={(e) => left.handleMouseDown(e, 'left')}
           className="w-[5px] h-full cursor-col-resize shrink-0 relative group flex items-center justify-center"
         >
           <div className="absolute inset-y-0 -left-[3px] -right-[3px] z-10" />
@@ -72,13 +84,37 @@ export function AppShell({ sidebar, children }: AppShellProps) {
         </div>
       )}
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex-1 h-full overflow-auto bg-cream-50">
         {children}
       </main>
 
-      {/* Drag overlay */}
-      {isDragging && <div className="fixed inset-0 z-50 cursor-col-resize select-none" />}
+      {/* Right Resize Handle */}
+      {!rightCollapsed && (
+        <div
+          onMouseDown={(e) => right.handleMouseDown(e, 'right')}
+          className="w-[5px] h-full cursor-col-resize shrink-0 relative group flex items-center justify-center"
+        >
+          <div className="absolute inset-y-0 -left-[3px] -right-[3px] z-10" />
+          <div className="w-[3px] h-8 rounded-full bg-cream-400/0 group-hover:bg-sage-400/60 group-active:bg-sage-400 transition-colors" />
+        </div>
+      )}
+
+      {/* Right Panel */}
+      <aside
+        className="h-full border-l border-cream-400/60 bg-cream-100 flex flex-col shrink-0 overflow-hidden"
+        style={{
+          width: rightEffectiveWidth,
+          transition: anyDragging ? 'none' : 'width 200ms ease-out',
+        }}
+      >
+        <div style={{ width: rightCollapsed ? RIGHT_COLLAPSED_WIDTH : right.width, minWidth: rightCollapsed ? RIGHT_COLLAPSED_WIDTH : right.width }} className="h-full">
+          {rightPanel({ collapsed: rightCollapsed, onToggleCollapse: () => setRightCollapsed(prev => !prev) })}
+        </div>
+      </aside>
+
+      {/* Drag Overlay */}
+      {anyDragging && <div className="fixed inset-0 z-50 cursor-col-resize select-none" />}
     </div>
   )
 }

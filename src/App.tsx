@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { SlideSidebar } from './components/layout/SlideSidebar'
+import { RightEditPanel } from './components/layout/RightEditPanel'
 import { SlideCanvas } from './components/slide/SlideCanvas'
 import './App.css'
 
@@ -33,6 +34,12 @@ function App() {
           totalPages={slides.length}
           collapsed={collapsed}
           onSlideSelect={setCurrentSlideId}
+          onToggleCollapse={onToggleCollapse}
+        />
+      )}
+      rightPanel={({ collapsed, onToggleCollapse }) => (
+        <RightEditPanel
+          collapsed={collapsed}
           onToggleCollapse={onToggleCollapse}
         />
       )}
