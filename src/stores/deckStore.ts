@@ -1,6 +1,9 @@
 import { create } from 'zustand'
 import type { Deck } from '../types/deck'
+import type { SlideRecord } from '../types/storage'
 import { deckRepository } from '../services/storage/deckRepository'
+import { slideRepository } from '../services/storage/slideRepository'
+import { assetRepository } from '../services/storage/assetRepository'
 import { generateId } from '../utils/id'
 
 export interface SlideInfo {
@@ -8,6 +11,9 @@ export interface SlideInfo {
   deckId: string
   pageNumber: number
   title: string
+  thumbnailUrl?: string
+  imageUrl?: string
+  currentAssetId?: string
 }
 
 interface DeckStore {
@@ -21,13 +27,23 @@ interface DeckStore {
   updateDeck: (deck: Deck) => Promise<void>
   deleteDeck: (id: string) => Promise<void>
   setCurrentDeckId: (id: string | null) => void
+  loadSlidesForDeck: (deckId: string) => Promise<void>
   setSlides: (slides: SlideInfo[]) => void
   addSlide: (slide: SlideInfo) => void
   removeSlide: (id: string) => void
   renameSlide: (id: string, title: string) => void
+  loadSlideImage: (slideId: string) => Promise<string | undefined>
+  cleanup: () => void
 }
 
-export const useDeckStore = create<DeckStore>()((set) => ({
+const objectUrls = new Set<string>()
+
+function trackUrl(url: string): string {
+  objectUrls.add(url)
+  return url
+}
+
+export const useDeckStore = create<DeckStore>()((set, get) => ({
   decks: [],
   currentDeckId: null,
   slides: [],
@@ -73,6 +89,33 @@ export const useDeckStore = create<DeckStore>()((set) => ({
     set({ currentDeckId: id })
   },
 
+  async loadSlidesForDeck(deckId: string) {
+    set({ isLoading: true })
+    const records: SlideRecord[] = await slideRepository.getByDeckId(deckId)
+    records.sort((a, b) => a.pageNumber - b.pageNumber)
+
+    const slides: SlideInfo[] = await Promise.all(
+      records.map(async (record) => {
+        let thumbnailUrl: string | undefined
+        const thumb = await assetRepository.getThumbnail(record.currentAssetId)
+        if (thumb) {
+          thumbnailUrl = trackUrl(URL.createObjectURL(thumb.blob))
+        }
+
+        return {
+          id: record.id,
+          deckId: record.deckId,
+          pageNumber: record.pageNumber,
+          title: `第 ${record.pageNumber} 页`,
+          thumbnailUrl,
+          currentAssetId: record.currentAssetId,
+        }
+      }),
+    )
+
+    set({ slides, isLoading: false })
+  },
+
   setSlides(slides: SlideInfo[]) {
     set({ slides })
   },
@@ -89,5 +132,28 @@ export const useDeckStore = create<DeckStore>()((set) => ({
     set((state) => ({
       slides: state.slides.map((s) => s.id === id ? { ...s, title } : s),
     }))
+  },
+
+  async loadSlideImage(slideId: string) {
+    const slide = get().slides.find((s) => s.id === slideId)
+    if (!slide?.currentAssetId) return undefined
+
+    if (slide.imageUrl) return slide.imageUrl
+
+    const asset = await assetRepository.get(slide.currentAssetId)
+    if (!asset) return undefined
+
+    const url = trackUrl(URL.createObjectURL(asset.blob))
+    set((state) => ({
+      slides: state.slides.map((s) =>
+        s.id === slideId ? { ...s, imageUrl: url } : s,
+      ),
+    }))
+    return url
+  },
+
+  cleanup() {
+    objectUrls.forEach((url) => URL.revokeObjectURL(url))
+    objectUrls.clear()
   },
 }))
