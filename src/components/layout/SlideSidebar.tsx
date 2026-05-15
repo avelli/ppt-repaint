@@ -17,6 +17,7 @@ interface SlideSidebarProps {
   onSlideSelect: (id: string) => void
   onSlideRename: (id: string, newTitle: string) => void
   onReorderSlides: (fromIndex: number, toIndex: number) => void
+  onInsertIndexChange?: (index: number | null) => void
   onToggleCollapse: () => void
   onImport?: () => void
   onImportPdf?: () => void
@@ -310,10 +311,23 @@ function EditableTitle({ slideId, title, onRename }: { slideId: string; title: s
   )
 }
 
-export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onReorderSlides, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, pdfProgress, exportProgress, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
+export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onReorderSlides, onInsertIndexChange, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, pdfProgress, exportProgress, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
   const currentDeck = decks?.find((d) => d.id === currentDeckId)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const [insertIndex, setInsertIndex] = useState<number | null>(null)
+
+  const handleGapClick = useCallback((index: number) => {
+    const newVal = insertIndex === index ? null : index
+    setInsertIndex(newVal)
+    onInsertIndexChange?.(newVal)
+  }, [insertIndex, onInsertIndexChange])
+
+  const handleSlideClick = useCallback((id: string) => {
+    setInsertIndex(null)
+    onInsertIndexChange?.(null)
+    onSlideSelect(id)
+  }, [onSlideSelect, onInsertIndexChange])
 
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     setDragIndex(index)
@@ -454,11 +468,23 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
             onDrop={handleDrop}
             onDragEnd={handleDragEnd}
           >
-            {dropIndex === index && (
-              <div className="h-0.5 bg-sage-500 rounded-full mx-2 -mt-2 mb-2" />
-            )}
+            {/* 间隙插入指示区 */}
+            <div
+              className={`relative cursor-pointer transition-all ${
+                insertIndex === index ? 'py-1.5' : 'py-0.5 hover:py-1.5'
+              }`}
+              onClick={(e) => { e.stopPropagation(); handleGapClick(index) }}
+            >
+              <div className={`h-0.5 rounded-full mx-2 transition-colors ${
+                dropIndex === index
+                  ? 'bg-sage-500'
+                  : insertIndex === index
+                    ? 'bg-sage-500'
+                    : 'bg-transparent hover:bg-cream-400'
+              }`} />
+            </div>
             <button
-              onClick={() => onSlideSelect(slide.id)}
+              onClick={() => handleSlideClick(slide.id)}
               className={`w-full rounded-2xl overflow-hidden border-2 transition-all ${
                 slide.isCurrent
                   ? 'border-sage-400 shadow-md'
@@ -499,9 +525,21 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
             )}
           </div>
         ))}
-        {dropIndex === slides.length && (
-          <div className="h-0.5 bg-sage-500 rounded-full mx-2" />
-        )}
+        {/* 末尾间隙 */}
+        <div
+          className={`relative cursor-pointer transition-all ${
+            insertIndex === slides.length ? 'py-1.5' : 'py-0.5 hover:py-1.5'
+          }`}
+          onClick={(e) => { e.stopPropagation(); handleGapClick(slides.length) }}
+        >
+          <div className={`h-0.5 rounded-full mx-2 transition-colors ${
+            dropIndex === slides.length
+              ? 'bg-sage-500'
+              : insertIndex === slides.length
+                ? 'bg-sage-500'
+                : 'bg-transparent hover:bg-cream-400'
+          }`} />
+        </div>
       </div>
     </div>
   )

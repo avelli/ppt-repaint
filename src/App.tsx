@@ -72,6 +72,7 @@ function App() {
   const timeout = useSettingsStore((s) => s.timeout)
 
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [pasteInsertIndex, setPasteInsertIndex] = useState<number | null>(null)
   const [originalAssetInfo, setOriginalAssetInfo] = useState<{ assetId: string; thumbnailUrl?: string } | null>(null)
   const [pdfProgress, setPdfProgress] = useState<{ current: number; total: number } | null>(null)
   const [exportProgress, setExportProgress] = useState<{ current: number; total: number } | null>(null)
@@ -203,6 +204,15 @@ function App() {
             const deckId = await importImages([file], { deckId: currentDeckId })
             await loadDecks()
             await loadSlidesForDeck(deckId)
+
+            if (pasteInsertIndex !== null) {
+              const { slides: updatedSlides } = useDeckStore.getState()
+              const lastIdx = updatedSlides.length - 1
+              if (lastIdx > pasteInsertIndex) {
+                await reorderSlides(lastIdx, pasteInsertIndex)
+              }
+              setPasteInsertIndex(null)
+            }
             break
           }
         } catch { /* 静默失败 */ }
@@ -237,7 +247,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentSlideId, currentDeckId, slides, removeSlide, insertSlideAfter, setCurrentSlideId, loadDecks, loadSlidesForDeck])
+  }, [currentSlideId, currentDeckId, slides, removeSlide, insertSlideAfter, setCurrentSlideId, loadDecks, loadSlidesForDeck, pasteInsertIndex, reorderSlides])
 
   const handleImport = useCallback(() => {
     fileInputRef.current?.click()
@@ -510,6 +520,7 @@ function App() {
             onSlideSelect={handleSlideSelect}
             onSlideRename={renameSlide}
             onReorderSlides={reorderSlides}
+            onInsertIndexChange={setPasteInsertIndex}
             onToggleCollapse={onToggleCollapse}
             onImport={handleImport}
             onImportPdf={handleImportPdf}
