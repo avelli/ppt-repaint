@@ -27,18 +27,18 @@ function App() {
 
   return (
     <AppShell
-      sidebar={
+      sidebar={({ collapsed, onToggleCollapse }) => (
         <SlideSidebar
           slides={slides}
           totalPages={slides.length}
+          collapsed={collapsed}
           onSlideSelect={setCurrentSlideId}
-          onHomeClick={() => {}}
+          onToggleCollapse={onToggleCollapse}
         />
-      }
+      )}
     >
       <SlideCanvas
         title={currentSlide?.title ?? '未命名演示文稿'}
-        onInspectClick={() => {}}
       />
     </AppShell>
   )
