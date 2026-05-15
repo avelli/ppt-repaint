@@ -62,6 +62,7 @@ function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [originalAssetInfo, setOriginalAssetInfo] = useState<{ assetId: string; thumbnailUrl?: string } | null>(null)
   const [pdfProgress, setPdfProgress] = useState<{ current: number; total: number } | null>(null)
+  const [exportProgress, setExportProgress] = useState<{ current: number; total: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const pdfInputRef = useRef<HTMLInputElement>(null)
 
@@ -121,7 +122,8 @@ function App() {
   const handleExportPptx = useCallback(async () => {
     if (!currentDeckId) return
     try {
-      const blob = await exportPptx(currentDeckId)
+      const blob = await exportPptx(currentDeckId, setExportProgress)
+      setExportProgress(null)
       const deck = decks.find((d) => d.id === currentDeckId)
       const filename = `${deck?.title ?? '演示文稿'}.pptx`
       const url = URL.createObjectURL(blob)
@@ -131,6 +133,7 @@ function App() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
+      setExportProgress(null)
       alert(err instanceof Error ? err.message : '导出失败')
     }
   }, [currentDeckId, decks])
@@ -385,6 +388,7 @@ function App() {
             onNewProject={handleNewProject}
             isLoading={isLoading}
             pdfProgress={pdfProgress}
+            exportProgress={exportProgress}
             decks={decks}
             currentDeckId={currentDeckId}
             onDeckSelect={setCurrentDeckId}

@@ -3,7 +3,15 @@ import { deckRepository } from '../storage/deckRepository'
 import { slideRepository } from '../storage/slideRepository'
 import { assetRepository } from '../storage/assetRepository'
 
-export async function exportPptx(deckId: string): Promise<Blob> {
+export interface ExportProgress {
+  current: number
+  total: number
+}
+
+export async function exportPptx(
+  deckId: string,
+  onProgress?: (progress: ExportProgress) => void
+): Promise<Blob> {
   const deck = await deckRepository.getById(deckId)
   if (!deck) {
     throw new Error('演示文稿不存在')
@@ -13,16 +21,18 @@ export async function exportPptx(deckId: string): Promise<Blob> {
     throw new Error('演示文稿没有页面')
   }
 
+  const total = deck.slides.length
   const pptx = new PptxGenJS()
   pptx.defineLayout({ name: 'CUSTOM', width: 10, height: 5.625 })
   pptx.layout = 'CUSTOM'
 
+  let current = 0
   for (const slideId of deck.slides) {
     const slideRecord = await slideRepository.getById(slideId)
-    if (!slideRecord) continue
+    if (!slideRecord) { current++; continue }
 
     const asset = await assetRepository.get(slideRecord.currentAssetId)
-    if (!asset) continue
+    if (!asset) { current++; continue }
 
     const dataUrl = await blobToDataUrl(asset.blob)
     const slide = pptx.addSlide()
@@ -33,6 +43,8 @@ export async function exportPptx(deckId: string): Promise<Blob> {
       w: '100%',
       h: '100%',
     })
+    current++
+    onProgress?.({ current, total })
   }
 
   return await pptx.write({ outputType: 'blob' }) as Blob
