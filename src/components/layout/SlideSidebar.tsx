@@ -385,7 +385,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
 
   return (
     <div className="flex flex-col h-full">
-      <header className={`flex items-center justify-between ${HEADER_PX} ${HEADER_PY} shrink-0`}>
+      <header className={`flex items-center ${HEADER_PX} ${HEADER_PY} shrink-0`}>
         <div className="flex items-center gap-2">
           <SidebarToggleButton collapsed={false} onClick={onToggleCollapse} />
           {onNewProject && <NewProjectButton onClick={onNewProject} />}
@@ -393,9 +393,6 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
           {onImportPdf && <ImportPdfButton onClick={onImportPdf} />}
           {onExportPptx && <ExportPptxButton onClick={onExportPptx} />}
         </div>
-        <span className="text-sm text-warm-700/60 font-medium">
-          {isLoading ? '加载中...' : `共 ${totalPages} 页`}
-        </span>
       </header>
 
       {pdfProgress && (
@@ -439,7 +436,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
         />
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 space-y-4 scrollbar-styled">
+      <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 scrollbar-styled">
         {slides.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-cream-500">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
@@ -470,71 +467,65 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
           >
             {/* 间隙插入指示区 */}
             <div
-              className={`relative cursor-pointer transition-all ${
-                insertIndex === index ? 'py-1.5' : 'py-0.5 hover:py-1.5'
-              }`}
+              className="relative cursor-pointer h-2"
               onClick={(e) => { e.stopPropagation(); handleGapClick(index) }}
             >
-              <div className={`h-0.5 rounded-full mx-2 transition-colors ${
-                dropIndex === index
+              <div className={`absolute inset-x-2 top-1/2 -translate-y-1/2 h-0.5 rounded-full transition-colors ${
+                dropIndex === index || insertIndex === index
                   ? 'bg-sage-500'
-                  : insertIndex === index
-                    ? 'bg-sage-500'
-                    : 'bg-transparent hover:bg-cream-400'
+                  : 'bg-transparent'
               }`} />
             </div>
-            <button
-              onClick={() => handleSlideClick(slide.id)}
-              className={`w-full rounded-2xl overflow-hidden border-2 transition-all ${
-                slide.isCurrent
-                  ? 'border-sage-400 shadow-md'
-                  : 'border-transparent hover:border-cream-400 hover:shadow-sm'
-              } ${dragIndex === index ? 'opacity-40' : ''}`}
-            >
-              <div
-                className="aspect-[16/9] bg-cream-100 overflow-hidden flex items-center justify-center relative"
-                data-ctx-area="sidebar"
-                data-ctx-src={slide.thumbnailUrl || ''}
-                data-ctx-slide-id={slide.id}
+            <div className="flex items-start gap-1.5">
+              <span className="shrink-0 w-5 text-xs text-warm-700/50 font-medium text-right pt-1">
+                {index + 1}
+              </span>
+              <button
+                onClick={() => handleSlideClick(slide.id)}
+                className={`flex-1 min-w-0 rounded-2xl overflow-hidden border-2 transition-all ${
+                  slide.isCurrent
+                    ? 'border-sage-400 shadow-md'
+                    : 'border-transparent hover:border-cream-400 hover:shadow-sm'
+                } ${dragIndex === index ? 'opacity-40' : ''}`}
               >
-                {slide.thumbnailUrl ? (
-                  <img
-                    src={slide.thumbnailUrl}
-                    alt={`第 ${slide.pageNumber} 页`}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-cream-500 text-sm">暂无预览</div>
-                )}
-                <span className="absolute top-1 left-1.5 text-xs text-warm-700/50 font-medium">
-                  {slide.pageNumber}
-                </span>
-                {slide.generationCount > 0 && (
-                  <div className="absolute top-1 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-warm-900/70 text-white text-[10px] font-medium backdrop-blur-sm">
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="2" y="2" width="15" height="15" rx="2" />
-                      <rect x="7" y="7" width="15" height="15" rx="2" />
-                    </svg>
-                    <span>{slide.generationCount}</span>
-                  </div>
-                )}
-              </div>
-            </button>
+                <div
+                  className="aspect-[16/9] bg-cream-100 overflow-hidden flex items-center justify-center relative"
+                  data-ctx-area="sidebar"
+                  data-ctx-src={slide.thumbnailUrl || ''}
+                  data-ctx-slide-id={slide.id}
+                >
+                  {slide.thumbnailUrl ? (
+                    <img
+                      src={slide.thumbnailUrl}
+                      alt={`第 ${index + 1} 页`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-cream-500 text-sm">暂无预览</div>
+                  )}
+                  {slide.generationCount > 0 && (
+                    <div className="absolute top-1 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-warm-900/70 text-white text-[10px] font-medium backdrop-blur-sm">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="2" width="15" height="15" rx="2" />
+                        <rect x="7" y="7" width="15" height="15" rx="2" />
+                      </svg>
+                      <span>{slide.generationCount}</span>
+                    </div>
+                  )}
+                </div>
+              </button>
+            </div>
           </div>
         ))}
         {/* 末尾间隙 */}
         <div
-          className={`relative cursor-pointer transition-all ${
-            insertIndex === slides.length ? 'py-1.5' : 'py-0.5 hover:py-1.5'
-          }`}
+          className="relative cursor-pointer h-2"
           onClick={(e) => { e.stopPropagation(); handleGapClick(slides.length) }}
         >
-          <div className={`h-0.5 rounded-full mx-2 transition-colors ${
-            dropIndex === slides.length
+          <div className={`absolute inset-x-2 top-1/2 -translate-y-1/2 h-0.5 rounded-full transition-colors ${
+            dropIndex === slides.length || insertIndex === slides.length
               ? 'bg-sage-500'
-              : insertIndex === slides.length
-                ? 'bg-sage-500'
-                : 'bg-transparent hover:bg-cream-400'
+              : 'bg-transparent'
           }`} />
         </div>
       </div>
