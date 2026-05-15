@@ -8,7 +8,7 @@ interface AppShellProps {
 const MIN_WIDTH = 200
 const MAX_WIDTH = 500
 const DEFAULT_WIDTH = 300
-const COLLAPSED_WIDTH = 56
+const COLLAPSED_WIDTH = 60
 
 export function AppShell({ sidebar, children }: AppShellProps) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH)

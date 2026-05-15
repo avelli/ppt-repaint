@@ -14,35 +14,37 @@ interface SlideSidebarProps {
   onToggleCollapse: () => void
 }
 
+const HEADER_PX = 'px-3'
+const HEADER_PY = 'py-3'
+
+function SidebarToggleButton({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-9 h-9 rounded-lg border border-cream-400 bg-cream-50 flex items-center justify-center hover:bg-cream-200 transition-colors"
+      aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warm-700">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M9 3v18" />
+      </svg>
+    </button>
+  )
+}
+
 export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onToggleCollapse }: SlideSidebarProps) {
   if (collapsed) {
     return (
-      <div className="flex flex-col items-center h-full py-4">
-        <button
-          onClick={onToggleCollapse}
-          className="w-10 h-10 rounded-full border border-cream-400 bg-cream-50 flex items-center justify-center hover:bg-cream-200 transition-colors"
-          aria-label="展开侧边栏"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warm-700">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
+      <div className={`flex flex-col h-full ${HEADER_PX} ${HEADER_PY}`}>
+        <SidebarToggleButton collapsed onClick={onToggleCollapse} />
       </div>
     )
   }
 
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center justify-between px-5 py-4 shrink-0">
-        <button
-          onClick={onToggleCollapse}
-          className="w-10 h-10 rounded-full border border-cream-400 bg-cream-50 flex items-center justify-center hover:bg-cream-200 transition-colors"
-          aria-label="收起侧边栏"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warm-700 rotate-180">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
+      <header className={`flex items-center justify-between ${HEADER_PX} ${HEADER_PY} shrink-0`}>
+        <SidebarToggleButton collapsed={false} onClick={onToggleCollapse} />
         <span className="text-sm text-warm-700/60 font-medium">共 {totalPages} 页</span>
       </header>
 
