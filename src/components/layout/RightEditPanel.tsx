@@ -6,6 +6,20 @@ interface RightEditPanelProps {
 const HEADER_PX = 'px-3'
 const HEADER_PY = 'py-3'
 
+interface TaskCard {
+  id: string
+  prompt: string
+  thumbnailUrl?: string
+  status: 'done' | 'generating' | 'error'
+  createdAt: string
+}
+
+const mockTasks: TaskCard[] = [
+  { id: '1', prompt: '将整体风格改为深色商务风', status: 'done', createdAt: '14:32' },
+  { id: '2', prompt: '标题字体放大，增加渐变背景', status: 'done', createdAt: '14:28' },
+  { id: '3', prompt: '添加数据图表占位区域', status: 'done', createdAt: '14:15' },
+]
+
 function PanelToggleButton({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {
   return (
     <button
@@ -21,6 +35,36 @@ function PanelToggleButton({ collapsed, onClick }: { collapsed: boolean; onClick
   )
 }
 
+function TaskCardItem({ task }: { task: TaskCard }) {
+  return (
+    <div className="flex gap-3 p-3 rounded-xl border border-cream-300 bg-white hover:shadow-sm transition-shadow">
+      {/* Thumbnail */}
+      <div className="w-24 h-16 rounded-lg bg-cream-200 shrink-0 overflow-hidden flex items-center justify-center">
+        {task.thumbnailUrl ? (
+          <img src={task.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-cream-400">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+        <p className="text-sm text-warm-800 font-medium line-clamp-2">{task.prompt}</p>
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-xs text-warm-700/50">{task.createdAt}</span>
+          {task.status === 'generating' && (
+            <span className="text-xs text-sage-600 font-medium">生成中...</span>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function RightEditPanel({ collapsed, onToggleCollapse }: RightEditPanelProps) {
   if (collapsed) {
     return (
@@ -32,68 +76,42 @@ export function RightEditPanel({ collapsed, onToggleCollapse }: RightEditPanelPr
 
   return (
     <div className="flex flex-col h-full">
-      <header className={`flex items-center justify-between ${HEADER_PX} ${HEADER_PY} shrink-0`}>
-        <span className="text-sm text-warm-700 font-medium">编辑</span>
+      {/* Header */}
+      <header className={`flex items-center justify-between ${HEADER_PX} ${HEADER_PY} shrink-0 border-b border-cream-300/60`}>
+        <span className="text-sm text-warm-700 font-medium">编辑历史</span>
         <PanelToggleButton collapsed={false} onClick={onToggleCollapse} />
       </header>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        {/* 编辑模式 */}
-        <section>
-          <h3 className="text-xs text-warm-700/60 font-medium mb-2 uppercase tracking-wide">模式</h3>
-          <div className="flex gap-2">
-            <button className="flex-1 px-3 py-2 rounded-lg border border-sage-400 bg-sage-400/10 text-sm text-sage-700 font-medium transition-colors">
-              整页重绘
-            </button>
-            <button className="flex-1 px-3 py-2 rounded-lg border border-cream-400 bg-cream-50 text-sm text-warm-700 font-medium hover:bg-cream-200 transition-colors">
-              局部编辑
-            </button>
+      {/* Task Card List */}
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+        {mockTasks.map((task) => (
+          <TaskCardItem key={task.id} task={task} />
+        ))}
+        {mockTasks.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full text-cream-500 text-sm">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-2">
+              <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            <p>输入指令开始编辑</p>
           </div>
-        </section>
+        )}
+      </div>
 
-        {/* 风格预设 */}
-        <section>
-          <h3 className="text-xs text-warm-700/60 font-medium mb-2 uppercase tracking-wide">风格</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {['商务简约', '科技感', '学术严谨', '创意活泼'].map((style) => (
-              <button
-                key={style}
-                className="px-3 py-2 rounded-lg border border-cream-400 bg-cream-50 text-sm text-warm-700 font-medium hover:bg-cream-200 transition-colors truncate"
-              >
-                {style}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* 约束条件 */}
-        <section>
-          <h3 className="text-xs text-warm-700/60 font-medium mb-2 uppercase tracking-wide">约束</h3>
-          <div className="flex flex-wrap gap-2">
-            {['保留文字', '保留配色', '保留布局'].map((constraint) => (
-              <button
-                key={constraint}
-                className="px-3 py-1.5 rounded-full border border-cream-400 bg-cream-50 text-xs text-warm-700 font-medium hover:bg-cream-200 transition-colors"
-              >
-                {constraint}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* 编辑指令 */}
-        <section className="flex-1 flex flex-col">
-          <h3 className="text-xs text-warm-700/60 font-medium mb-2 uppercase tracking-wide">指令</h3>
+      {/* Bottom Input Bar */}
+      <div className="shrink-0 border-t border-cream-300/60 px-3 py-3">
+        <div className="flex items-end gap-2">
           <textarea
+            rows={1}
             placeholder="描述你想要的修改效果..."
-            className="flex-1 min-h-[120px] w-full rounded-xl border border-cream-400 bg-white px-4 py-3 text-sm text-warm-900 placeholder:text-cream-500 resize-none focus:outline-none focus:border-sage-400 transition-colors"
+            className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-cream-400 bg-white px-4 py-2.5 text-sm text-warm-900 placeholder:text-cream-500 resize-none focus:outline-none focus:border-sage-400 transition-colors"
           />
-        </section>
-
-        {/* 生成按钮 */}
-        <button className="w-full py-3 rounded-xl bg-sage-500 text-white font-medium text-sm hover:bg-sage-600 transition-colors">
-          生成
-        </button>
+          <button className="w-10 h-10 rounded-xl bg-sage-500 flex items-center justify-center hover:bg-sage-600 transition-colors shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   )
