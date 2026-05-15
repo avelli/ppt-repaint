@@ -3,9 +3,17 @@ import type { Deck } from '../types/deck'
 import { deckRepository } from '../services/storage/deckRepository'
 import { generateId } from '../utils/id'
 
+export interface SlideInfo {
+  id: string
+  deckId: string
+  pageNumber: number
+  title: string
+}
+
 interface DeckStore {
   decks: Deck[]
   currentDeckId: string | null
+  slides: SlideInfo[]
   isLoading: boolean
 
   loadDecks: () => Promise<void>
@@ -13,11 +21,16 @@ interface DeckStore {
   updateDeck: (deck: Deck) => Promise<void>
   deleteDeck: (id: string) => Promise<void>
   setCurrentDeckId: (id: string | null) => void
+  setSlides: (slides: SlideInfo[]) => void
+  addSlide: (slide: SlideInfo) => void
+  removeSlide: (id: string) => void
+  renameSlide: (id: string, title: string) => void
 }
 
 export const useDeckStore = create<DeckStore>()((set) => ({
   decks: [],
   currentDeckId: null,
+  slides: [],
   isLoading: false,
 
   async loadDecks() {
@@ -58,5 +71,23 @@ export const useDeckStore = create<DeckStore>()((set) => ({
 
   setCurrentDeckId(id: string | null) {
     set({ currentDeckId: id })
+  },
+
+  setSlides(slides: SlideInfo[]) {
+    set({ slides })
+  },
+
+  addSlide(slide: SlideInfo) {
+    set((state) => ({ slides: [...state.slides, slide] }))
+  },
+
+  removeSlide(id: string) {
+    set((state) => ({ slides: state.slides.filter((s) => s.id !== id) }))
+  },
+
+  renameSlide(id: string, title: string) {
+    set((state) => ({
+      slides: state.slides.map((s) => s.id === id ? { ...s, title } : s),
+    }))
   },
 }))

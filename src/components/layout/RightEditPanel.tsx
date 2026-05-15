@@ -1,12 +1,7 @@
 import { useState } from 'react'
+import type { EditTask } from '../../stores/editorStore'
 
-export interface EditTask {
-  id: string
-  prompt: string
-  thumbnailUrl?: string
-  status: 'done' | 'generating' | 'error'
-  createdAt: string
-}
+export type { EditTask }
 
 interface RightEditPanelProps {
   collapsed: boolean
