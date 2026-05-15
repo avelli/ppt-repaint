@@ -2,8 +2,6 @@
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" },
-    { "path": "./oh-my-ppt" },
-    { "path": "./gpt_image_playground" }
+    { "path": "./tsconfig.node.json" }
   ]
 }
