@@ -549,7 +549,7 @@ function App() {
         )}
       >
         <SlideCanvas
-          title={currentSlide?.title ?? '导入图片开始编辑'}
+          title={currentSlide ? `第 ${currentSlide.pageNumber} 页` : '导入图片开始编辑'}
           imageUrl={currentSlide?.imageUrl}
           onImport={handleImport}
           isEmpty={slides.length === 0}

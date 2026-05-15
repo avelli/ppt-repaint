@@ -44,7 +44,7 @@ export function SlideCanvas({ title, imageUrl, onImport, isEmpty }: SlideCanvasP
 
   return (
     <div className="flex flex-col h-full p-8">
-      <header className="flex items-center justify-between mb-6 shrink-0">
+      <header className="flex items-center justify-center mb-6 shrink-0">
         <h1 className="text-2xl font-semibold text-warm-900 font-display">
           {title}
         </h1>

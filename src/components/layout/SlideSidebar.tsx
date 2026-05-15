@@ -520,9 +520,6 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
                 )}
               </div>
             </button>
-            {slide.title && (
-              <EditableTitle slideId={slide.id} title={slide.title} onRename={onSlideRename} />
-            )}
           </div>
         ))}
         {/* 末尾间隙 */}
