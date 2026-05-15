@@ -1,6 +1,6 @@
 # PPT Repaint
 
-厌倦了豆包、Kimi、千问等网页端大模型生成 PPT 的单调和千篇一律，又不知道该如何修改 NotebookLM 生成的 PPT？本工具正是为此而诞生的。
+厌倦了豆包、Kimi、千问等网页端大模型生成 PPT 的单调和千篇一律，又不知道该如何修改 NotebookLM 生成的图片型 PPT？本工具正是为此而诞生的。
 
 <br>
 
@@ -51,6 +51,20 @@ npm run build
 3. 在右侧编辑面板输入重绘指令（如"统一为商务蓝色风格"），AI 将生成新版本
 4. 在右侧面板的版本列表中切换对比，选择满意的版本
 5. 完成编辑后点击导出按钮，下载 PPTX 文件
+
+## API Key 配置
+
+本工具需要 OpenAI API Key 才能使用 AI 重绘功能。
+
+1. 前往 [OpenAI Platform](https://platform.openai.com/api-keys) 创建 API Key
+2. 打开应用后，点击右侧面板顶部的设置图标（齿轮）
+3. 在弹窗中填入以下信息：
+   - **API Key** — 你的 OpenAI API Key（以 `sk-` 开头）
+   - **Base URL** — 默认为 `https://api.openai.com/v1`，如使用第三方代理可修改
+   - **模型** — 默认为 `gpt-image-2`
+4. 点击保存，配置会持久化到浏览器 localStorage
+
+> 注意：API Key 仅存储在你的浏览器本地，不会上传到任何服务器。如使用第三方中转服务，请确认其可信度。
 
 ## 项目结构
 
