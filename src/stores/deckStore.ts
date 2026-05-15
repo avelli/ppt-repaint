@@ -30,6 +30,7 @@ interface DeckStore {
   loadSlidesForDeck: (deckId: string) => Promise<void>
   setSlides: (slides: SlideInfo[]) => void
   addSlide: (slide: SlideInfo) => void
+  insertSlideAfter: (afterIndex: number, slide: SlideInfo) => void
   removeSlide: (id: string) => void
   renameSlide: (id: string, title: string) => void
   loadSlideImage: (slideId: string) => Promise<string | undefined>
@@ -133,6 +134,14 @@ export const useDeckStore = create<DeckStore>()((set, get) => ({
 
   addSlide(slide: SlideInfo) {
     set((state) => ({ slides: [...state.slides, slide] }))
+  },
+
+  insertSlideAfter(afterIndex: number, slide: SlideInfo) {
+    set((state) => {
+      const newSlides = [...state.slides]
+      newSlides.splice(afterIndex + 1, 0, slide)
+      return { slides: newSlides.map((s, i) => ({ ...s, pageNumber: i + 1 })) }
+    })
   },
 
   removeSlide(id: string) {

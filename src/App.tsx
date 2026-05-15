@@ -7,6 +7,7 @@ import { SlideCanvas } from './components/slide/SlideCanvas'
 import { ApiSettingsModal } from './components/editor/ApiSettingsModal'
 import { ImageContextMenu } from './components/ui/ImageContextMenu'
 import { useDeckStore } from './stores/deckStore'
+import type { SlideInfo } from './stores/deckStore'
 import { useEditorStore } from './stores/editorStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useGenerationStore } from './stores/generationStore'
@@ -17,6 +18,15 @@ import { slideRepository } from './services/storage/slideRepository'
 import { importImages, SUPPORTED_IMAGE_TYPES } from './services/importer/importImages'
 import { importPdf } from './services/importer/importPdf'
 import { exportPptx } from './services/export/exportPptx'
+
+async function convertBlobToPng(blob: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(blob)
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(bitmap, 0, 0)
+  bitmap.close()
+  return canvas.convertToBlob({ type: 'image/png' })
+}
 
 function App() {
   const decks = useDeckStore((s) => s.decks)
@@ -31,6 +41,8 @@ function App() {
   const loadSlidesForDeck = useDeckStore((s) => s.loadSlidesForDeck)
   const loadSlideImage = useDeckStore((s) => s.loadSlideImage)
   const reorderSlides = useDeckStore((s) => s.reorderSlides)
+  const removeSlide = useDeckStore((s) => s.removeSlide)
+  const insertSlideAfter = useDeckStore((s) => s.insertSlideAfter)
   const renameSlide = useDeckStore((s) => s.renameSlide)
   const selectSlideCandidate = useDeckStore((s) => s.selectSlideCandidate)
   const getOriginalAssetId = useDeckStore((s) => s.getOriginalAssetId)
@@ -110,6 +122,122 @@ function App() {
     })
     return () => { setOriginalAssetInfo(null) }
   }, [currentSlideId, getOriginalAssetId])
+
+  const undoStackRef = useRef<{ slide: SlideInfo; index: number; deckId: string } | null>(null)
+
+  useEffect(() => {
+    const isEditing = () => {
+      const el = document.activeElement
+      if (!el) return false
+      const tag = el.tagName.toLowerCase()
+      return tag === 'input' || tag === 'textarea' || (el as HTMLElement).isContentEditable
+    }
+
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if (isEditing()) return
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (!currentSlideId) return
+        e.preventDefault()
+        const confirmed = window.confirm('确定要删除这一页吗？')
+        if (!confirmed) return
+
+        const index = slides.findIndex((s) => s.id === currentSlideId)
+        const slideInfo = slides[index]
+        const record = await slideRepository.getById(currentSlideId)
+        if (record) {
+          for (const version of record.versions) {
+            await assetRepository.delete(version.assetId)
+          }
+          await slideRepository.delete(currentSlideId)
+        }
+        removeSlide(currentSlideId)
+        undoStackRef.current = { slide: slideInfo, index, deckId: currentDeckId! }
+
+        if (currentDeckId) {
+          const deck = useDeckStore.getState().decks.find((d) => d.id === currentDeckId)
+          if (deck) {
+            await useDeckStore.getState().updateDeck({
+              ...deck,
+              slides: deck.slides.filter((sid) => sid !== currentSlideId),
+            })
+          }
+        }
+
+        const remaining = slides.filter((s) => s.id !== currentSlideId)
+        if (remaining.length > 0) {
+          const next = remaining[Math.min(index, remaining.length - 1)]
+          setCurrentSlideId(next.id)
+        } else {
+          setCurrentSlideId(null)
+        }
+        return
+      }
+
+      if (e.ctrlKey && e.key === 'c') {
+        if (!currentSlideId) return
+        const slide = slides.find((s) => s.id === currentSlideId)
+        if (!slide?.currentAssetId) return
+        e.preventDefault()
+        try {
+          const asset = await assetRepository.get(slide.currentAssetId)
+          if (!asset) return
+          const pngBlob = asset.blob.type === 'image/png' ? asset.blob : await convertBlobToPng(asset.blob)
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': pngBlob }),
+          ])
+        } catch { /* 静默失败 */ }
+        return
+      }
+
+      if (e.ctrlKey && e.key === 'v') {
+        if (!currentDeckId) return
+        e.preventDefault()
+        try {
+          const items = await navigator.clipboard.read()
+          for (const item of items) {
+            const imageType = item.types.find((t) => t.startsWith('image/'))
+            if (!imageType) continue
+            const blob = await item.getType(imageType)
+            const file = new File([blob], `paste_${Date.now()}.png`, { type: blob.type })
+            const deckId = await importImages([file], { deckId: currentDeckId })
+            await loadDecks()
+            await loadSlidesForDeck(deckId)
+            break
+          }
+        } catch { /* 静默失败 */ }
+        return
+      }
+
+      if (e.ctrlKey && e.key === 'z') {
+        const undo = undoStackRef.current
+        if (!undo) return
+        e.preventDefault()
+        undoStackRef.current = null
+
+        const record = await slideRepository.getById(undo.slide.id)
+        if (!record) return
+
+        const { slides: currentSlides } = useDeckStore.getState()
+        const insertIdx = Math.min(undo.index, currentSlides.length)
+        insertSlideAfter(insertIdx - 1, undo.slide)
+
+        if (undo.deckId) {
+          const deck = useDeckStore.getState().decks.find((d) => d.id === undo.deckId)
+          if (deck) {
+            const newSlideIds = [...deck.slides]
+            newSlideIds.splice(insertIdx, 0, undo.slide.id)
+            await useDeckStore.getState().updateDeck({ ...deck, slides: newSlideIds })
+          }
+        }
+        setCurrentSlideId(undo.slide.id)
+        return
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentSlideId, currentDeckId, slides, removeSlide, insertSlideAfter, setCurrentSlideId, loadDecks, loadSlidesForDeck])
 
   const handleImport = useCallback(() => {
     fileInputRef.current?.click()
