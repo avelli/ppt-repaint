@@ -172,13 +172,14 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
       {decks && decks.length > 0 && onDeckSelect && (
         <div className="px-3 pb-2 shrink-0">
           <div className="relative">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-700/40 pointer-events-none">
-              <path d="M7 3v18" /><path d="M17 3v18" /><path d="M3 7h4" /><path d="M3 17h4" /><path d="M17 7h4" /><path d="M17 17h4" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-700/50 pointer-events-none">
+              <line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" />
+              <circle cx="8" cy="6" r="1.5" fill="currentColor" /><circle cx="16" cy="12" r="1.5" fill="currentColor" /><circle cx="10" cy="18" r="1.5" fill="currentColor" />
             </svg>
             <select
               value={currentDeckId ?? ''}
               onChange={(e) => onDeckSelect(e.target.value)}
-              className="w-full appearance-none bg-white border border-cream-300 rounded-lg py-2 pl-9 pr-8 text-sm text-warm-800 font-medium focus:outline-none focus:border-sage-400 transition-colors cursor-pointer hover:border-cream-400"
+              className="w-full appearance-none bg-white border border-sage-400 rounded-xl py-2.5 pl-9 pr-9 text-sm text-warm-800 font-medium focus:outline-none focus:ring-2 focus:ring-sage-200 transition-colors cursor-pointer hover:bg-cream-50"
             >
               {decks.map((deck) => (
                 <option key={deck.id} value={deck.id}>
@@ -186,9 +187,9 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
                 </option>
               ))}
             </select>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-700/40 pointer-events-none">
-              <polyline points="6 9 12 4 18 9" />
-              <polyline points="6 15 12 20 18 15" />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-700/40 pointer-events-none">
+              <polyline points="7 10 12 5 17 10" />
+              <polyline points="7 14 12 19 17 14" />
             </svg>
           </div>
         </div>
