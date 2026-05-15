@@ -47,6 +47,8 @@ const defaultState: SettingsState = {
   timeout: DEFAULT_TIMEOUT,
 }
 
+const VALID_SIZES = new Set(['1920x1080', '2560x1440', '3840x2160'])
+
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
@@ -63,6 +65,13 @@ export const useSettingsStore = create<SettingsStore>()(
       setTimeout: (timeout) => set({ timeout }),
       resetToDefaults: () => set(defaultState),
     }),
-    { name: 'oh-my-ppt-settings' },
+    {
+      name: 'oh-my-ppt-settings',
+      onRehydrateStorage: () => (state) => {
+        if (state && !VALID_SIZES.has(state.size)) {
+          state.size = DEFAULT_SIZE
+        }
+      },
+    },
   ),
 )
