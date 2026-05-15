@@ -375,7 +375,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
         />
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex-1 overflow-y-auto px-4 pb-4 pt-3 space-y-4 scrollbar-styled">
         {slides.length === 0 && !isLoading && (
           <div className="flex flex-col items-center justify-center h-full text-cream-500">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
