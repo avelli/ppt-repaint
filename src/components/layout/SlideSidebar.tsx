@@ -73,11 +73,6 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onT
             </button>
             <div className="flex items-center gap-2 mt-2 px-1">
               <span className="text-sm text-warm-700/60 font-medium">P{slide.pageNumber}</span>
-              {slide.isCurrent && (
-                <span className="text-xs px-2 py-0.5 rounded bg-sage-400 text-white font-medium">
-                  当前
-                </span>
-              )}
             </div>
             {slide.title && (
               <p className="text-sm text-warm-800 font-medium mt-0.5 px-1 truncate">
