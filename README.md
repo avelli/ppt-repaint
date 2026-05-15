@@ -6,6 +6,9 @@ AI 驱动的 PPT 重绘工作台。导入已有的 PPT 页面截图或 PDF，通
 
 纯前端应用，无需后端服务器，所有数据存储在浏览器本地。
 
+## 使用截图
+<img width="1917" height="1006" alt="image" src="https://github.com/user-attachments/assets/027127ad-e285-4898-9d77-f1c94e5ecd4f" />
+
 ## 特性
 
 - **多格式导入** — 支持 PNG/JPEG/WebP/GIF/BMP 批量导入，也可直接导入 PDF 逐页转换
