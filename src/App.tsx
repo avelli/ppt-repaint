@@ -14,6 +14,7 @@ function App() {
   const slides = useDeckStore((s) => s.slides)
   const isLoading = useDeckStore((s) => s.isLoading)
   const loadDecks = useDeckStore((s) => s.loadDecks)
+  const createDeck = useDeckStore((s) => s.createDeck)
   const setCurrentDeckId = useDeckStore((s) => s.setCurrentDeckId)
   const loadSlidesForDeck = useDeckStore((s) => s.loadSlidesForDeck)
   const loadSlideImage = useDeckStore((s) => s.loadSlideImage)
@@ -61,6 +62,11 @@ function App() {
   const handleImport = useCallback(() => {
     fileInputRef.current?.click()
   }, [])
+
+  const handleNewProject = useCallback(async () => {
+    const deck = await createDeck('未命名演示文稿')
+    setCurrentDeckId(deck.id)
+  }, [createDeck, setCurrentDeckId])
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -119,6 +125,7 @@ function App() {
             onSlideRename={renameSlide}
             onToggleCollapse={onToggleCollapse}
             onImport={handleImport}
+            onNewProject={handleNewProject}
             isLoading={isLoading}
           />
         )}

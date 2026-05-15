@@ -17,6 +17,7 @@ interface SlideSidebarProps {
   onSlideRename: (id: string, newTitle: string) => void
   onToggleCollapse: () => void
   onImport?: () => void
+  onNewProject?: () => void
   isLoading?: boolean
 }
 
@@ -48,6 +49,22 @@ function ImportButton({ onClick }: { onClick: () => void }) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-sage-600">
         <line x1="12" y1="5" x2="12" y2="19" />
         <line x1="5" y1="12" x2="19" y2="12" />
+      </svg>
+    </button>
+  )
+}
+
+function NewProjectButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-9 h-9 rounded-lg border border-cream-400 bg-cream-50 flex items-center justify-center hover:bg-cream-200 transition-colors"
+      aria-label="新增项目"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warm-700">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        <line x1="12" y1="11" x2="12" y2="17" />
+        <line x1="9" y1="14" x2="15" y2="14" />
       </svg>
     </button>
   )
@@ -109,11 +126,12 @@ function EditableTitle({ slideId, title, onRename }: { slideId: string; title: s
   )
 }
 
-export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse, onImport, isLoading }: SlideSidebarProps) {
+export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse, onImport, onNewProject, isLoading }: SlideSidebarProps) {
   if (collapsed) {
     return (
       <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY} gap-2`}>
         <SidebarToggleButton collapsed onClick={onToggleCollapse} />
+        {onNewProject && <NewProjectButton onClick={onNewProject} />}
         {onImport && <ImportButton onClick={onImport} />}
         <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
           {slides.map((slide) => (
@@ -139,6 +157,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
       <header className={`flex items-center justify-between ${HEADER_PX} ${HEADER_PY} shrink-0`}>
         <div className="flex items-center gap-2">
           <SidebarToggleButton collapsed={false} onClick={onToggleCollapse} />
+          {onNewProject && <NewProjectButton onClick={onNewProject} />}
           {onImport && <ImportButton onClick={onImport} />}
         </div>
         <span className="text-sm text-warm-700/60 font-medium">
