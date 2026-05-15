@@ -79,8 +79,12 @@ function App() {
 
   const handleDeckDelete = useCallback(async () => {
     if (!currentDeckId) return
+    const deck = decks.find((d) => d.id === currentDeckId)
+    const title = deck?.title ?? '此项目'
+    const confirmed = window.confirm(`确定要删除「${title}」吗？该项目下的所有幻灯片将被永久删除。`)
+    if (!confirmed) return
     await deleteDeck(currentDeckId)
-  }, [currentDeckId, deleteDeck])
+  }, [currentDeckId, decks, deleteDeck])
 
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files

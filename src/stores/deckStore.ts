@@ -78,10 +78,18 @@ export const useDeckStore = create<DeckStore>()((set, get) => ({
   },
 
   async deleteDeck(id: string) {
+    const slides = await slideRepository.getByDeckId(id)
+    for (const slide of slides) {
+      for (const version of slide.versions) {
+        await assetRepository.delete(version.assetId)
+      }
+      await slideRepository.delete(slide.id)
+    }
     await deckRepository.delete(id)
     set((state) => ({
       decks: state.decks.filter((d) => d.id !== id),
       currentDeckId: state.currentDeckId === id ? null : state.currentDeckId,
+      slides: state.currentDeckId === id ? [] : state.slides,
     }))
   },
 
