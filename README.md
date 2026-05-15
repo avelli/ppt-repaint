@@ -1,15 +1,18 @@
-# Oh My PPT Web
+# PPT Repaint
 
-纯前端 AI PPT 修改工作台。导入已有 PPT 页面截图或 PDF，通过 gpt-image-2 对单页或整套 PPT 进行美化、重绘、统一风格和导出。
+AI 驱动的 PPT 重绘工作台。导入 PPT 页面截图或 PDF，通过 gpt-image-2 对单页或整套幻灯片进行美化、重绘、风格统一，然后导出为 PPTX。
+
+纯前端应用，无需后端服务器，所有数据存储在浏览器本地。
 
 ## 特性
 
-- 导入图片（多图）或 PDF 逐页导入
-- 单页 AI 编辑（gpt-image-2）
-- 多版本对比与切换
-- 导出为 PPTX / PDF / 图片 ZIP
-- 纯浏览器运行，无需后端，数据存储在 IndexedDB
-- 用户自行提供 OpenAI API Key
+- 导入图片（多图批量）或 PDF 逐页导入
+- 单页 AI 重绘（基于 gpt-image-2）
+- 多版本对比与一键切换
+- 拖拽排序幻灯片
+- 导出为 PPTX
+- 纯浏览器运行，数据持久化到 IndexedDB
+- 用户自行提供 OpenAI API Key，密钥仅存储在本地
 
 ## 技术栈
 
@@ -30,9 +33,9 @@ npm run build
 
 ## 使用说明
 
-1. 打开应用后，点击「导入图片」或「导入 PDF」添加幻灯片
-2. 点击右上角设置图标，配置 OpenAI API Key
-3. 在右侧编辑面板输入修改指令，AI 将生成新版本
+1. 打开应用，点击「+」导入图片或 PDF
+2. 点击右侧面板的设置图标，配置 OpenAI API Key
+3. 在右侧编辑面板输入重绘指令，AI 将生成新版本
 4. 在右侧面板切换不同版本进行对比
 5. 完成编辑后导出为 PPTX
 
@@ -40,13 +43,9 @@ npm run build
 
 ```
 src/
-├── app/           # 应用入口（router, providers）
-├── pages/         # 页面组件
 ├── components/    # UI 组件（layout, slide, editor, ui）
 ├── services/      # 业务服务（image, importer, export, storage）
 ├── stores/        # Zustand 状态管理
-├── hooks/         # 自定义 hooks
-├── constants/     # 常量定义
 ├── types/         # TypeScript 类型
 └── utils/         # 工具函数
 ```

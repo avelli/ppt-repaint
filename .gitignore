@@ -32,7 +32,6 @@ lerna-debug.log*
 
 # Reference projects (not part of this repo)
 gpt_image_playground/
-oh-my-ppt/
 
 # Tool-generated files
 .bytro

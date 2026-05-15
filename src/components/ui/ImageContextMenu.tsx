@@ -107,7 +107,7 @@ export function ImageContextMenu() {
       const a = document.createElement('a')
       a.href = url
       const ts = formatTimestamp(new Date())
-      a.download = `oh-my-ppt_${ts}.png`
+      a.download = `ppt-repaint_${ts}.png`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)

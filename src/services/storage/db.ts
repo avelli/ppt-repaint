@@ -1,4 +1,4 @@
-const DB_NAME = 'oh-my-ppt'
+const DB_NAME = 'ppt-repaint'
 const DB_VERSION = 1
 
 export const STORE_DECKS = 'decks'

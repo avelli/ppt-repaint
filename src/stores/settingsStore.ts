@@ -66,7 +66,7 @@ export const useSettingsStore = create<SettingsStore>()(
       resetToDefaults: () => set(defaultState),
     }),
     {
-      name: 'oh-my-ppt-settings',
+      name: 'ppt-repaint-settings',
       onRehydrateStorage: () => (state) => {
         if (state && !VALID_SIZES.has(state.size)) {
           state.size = DEFAULT_SIZE
