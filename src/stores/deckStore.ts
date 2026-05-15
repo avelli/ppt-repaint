@@ -33,6 +33,8 @@ interface DeckStore {
   removeSlide: (id: string) => void
   renameSlide: (id: string, title: string) => void
   loadSlideImage: (slideId: string) => Promise<string | undefined>
+  selectSlideCandidate: (slideId: string, assetId: string) => Promise<void>
+  getOriginalAssetId: (slideId: string) => Promise<string | undefined>
   cleanup: () => void
 }
 
@@ -163,6 +165,35 @@ export const useDeckStore = create<DeckStore>()((set, get) => ({
       ),
     }))
     return url
+  },
+
+  async selectSlideCandidate(slideId: string, assetId: string) {
+    const record = await slideRepository.getById(slideId)
+    if (!record) return
+
+    await slideRepository.update({ ...record, currentAssetId: assetId })
+
+    const asset = await assetRepository.get(assetId)
+    if (!asset) return
+
+    const imageUrl = trackUrl(URL.createObjectURL(asset.blob))
+    let thumbnailUrl: string | undefined
+    const thumb = await assetRepository.getThumbnail(assetId)
+    if (thumb) {
+      thumbnailUrl = trackUrl(URL.createObjectURL(thumb.blob))
+    }
+
+    set((state) => ({
+      slides: state.slides.map((s) =>
+        s.id === slideId ? { ...s, currentAssetId: assetId, imageUrl, thumbnailUrl } : s,
+      ),
+    }))
+  },
+
+  async getOriginalAssetId(slideId: string) {
+    const record = await slideRepository.getById(slideId)
+    if (!record || record.versions.length === 0) return undefined
+    return record.versions[0].assetId
   },
 
   cleanup() {

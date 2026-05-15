@@ -1,7 +1,8 @@
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { SlideSidebar } from './components/layout/SlideSidebar'
 import { RightEditPanel } from './components/layout/RightEditPanel'
+import type { SlideCandidate } from './components/layout/RightEditPanel'
 import { SlideCanvas } from './components/slide/SlideCanvas'
 import { ApiSettingsModal } from './components/editor/ApiSettingsModal'
 import { ImageContextMenu } from './components/ui/ImageContextMenu'
@@ -29,6 +30,8 @@ function App() {
   const loadSlidesForDeck = useDeckStore((s) => s.loadSlidesForDeck)
   const loadSlideImage = useDeckStore((s) => s.loadSlideImage)
   const renameSlide = useDeckStore((s) => s.renameSlide)
+  const selectSlideCandidate = useDeckStore((s) => s.selectSlideCandidate)
+  const getOriginalAssetId = useDeckStore((s) => s.getOriginalAssetId)
   const cleanup = useDeckStore((s) => s.cleanup)
 
   const currentSlideId = useEditorStore((s) => s.currentSlideId)
@@ -55,6 +58,7 @@ function App() {
   const timeout = useSettingsStore((s) => s.timeout)
 
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [originalAssetInfo, setOriginalAssetInfo] = useState<{ assetId: string; thumbnailUrl?: string } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -87,6 +91,20 @@ function App() {
       loadSlideImage(currentSlideId)
     }
   }, [currentSlideId, loadSlideImage])
+
+  useEffect(() => {
+    if (!currentSlideId) return
+    getOriginalAssetId(currentSlideId).then(async (assetId) => {
+      if (!assetId) {
+        setOriginalAssetInfo(null)
+        return
+      }
+      const thumb = await assetRepository.getThumbnail(assetId)
+      const thumbnailUrl = thumb ? URL.createObjectURL(thumb.blob) : undefined
+      setOriginalAssetInfo({ assetId, thumbnailUrl })
+    })
+    return () => { setOriginalAssetInfo(null) }
+  }, [currentSlideId, getOriginalAssetId])
 
   const handleImport = useCallback(() => {
     fileInputRef.current?.click()
@@ -135,13 +153,80 @@ function App() {
     setCurrentSlideId(id)
   }, [setCurrentSlideId])
 
+  const handleSelectCandidate = useCallback(async (candidate: SlideCandidate) => {
+    if (!currentSlideId || !candidate.assetId || candidate.isSelected) return
+    await selectSlideCandidate(currentSlideId, candidate.assetId)
+  }, [currentSlideId, selectSlideCandidate])
+
   const slidesWithState = slides.map((s) => ({
     ...s,
     isCurrent: s.id === currentSlideId,
     generationCount: (editHistory[s.id] ?? []).length,
   }))
 
-  const currentTasks = currentSlideId ? (editHistory[currentSlideId] ?? []) : []
+  const candidates: SlideCandidate[] = useMemo(() => {
+    if (!currentSlide) return []
+
+    const tasks = currentSlideId ? (editHistory[currentSlideId] ?? []) : []
+    const list: SlideCandidate[] = []
+
+    if (originalAssetInfo) {
+      list.push({
+        id: 'original',
+        number: 1,
+        assetId: originalAssetInfo.assetId,
+        thumbnailUrl: originalAssetInfo.thumbnailUrl,
+        prompt: '',
+        isOriginal: true,
+        isSelected: currentSlide.currentAssetId === originalAssetInfo.assetId,
+      })
+    }
+
+    const doneTasks = tasks.filter((t) => t.status === 'done' && t.resultAssetId)
+    const generatingTasks = tasks.filter((t) => t.status === 'generating')
+    const errorTasks = tasks.filter((t) => t.status === 'error')
+
+    doneTasks.forEach((task) => {
+      list.push({
+        id: task.id,
+        number: list.length + 1,
+        assetId: task.resultAssetId!,
+        thumbnailUrl: task.thumbnailUrl,
+        prompt: task.prompt,
+        isOriginal: false,
+        isSelected: currentSlide.currentAssetId === task.resultAssetId,
+        status: 'done',
+      })
+    })
+
+    generatingTasks.forEach((task) => {
+      list.push({
+        id: task.id,
+        number: list.length + 1,
+        assetId: '',
+        thumbnailUrl: undefined,
+        prompt: task.prompt,
+        isOriginal: false,
+        isSelected: false,
+        status: 'generating',
+      })
+    })
+
+    errorTasks.forEach((task) => {
+      list.push({
+        id: task.id,
+        number: list.length + 1,
+        assetId: '',
+        thumbnailUrl: undefined,
+        prompt: task.prompt,
+        isOriginal: false,
+        isSelected: false,
+        status: 'error',
+      })
+    })
+
+    return list
+  }, [currentSlide, originalAssetInfo, currentSlideId, editHistory])
 
   const handleSubmitEdit = useCallback(async (prompt: string) => {
     if (!currentSlideId || !currentSlide) return
@@ -253,9 +338,8 @@ function App() {
           <RightEditPanel
             collapsed={collapsed}
             onToggleCollapse={onToggleCollapse}
-            slideTitle={currentSlide?.title ?? '未命名'}
-            currentSlideImageUrl={currentSlide?.imageUrl}
-            tasks={currentTasks}
+            candidates={candidates}
+            onSelectCandidate={handleSelectCandidate}
             onSubmit={handleSubmitEdit}
             onOpenSettings={() => setSettingsOpen(true)}
             isGenerating={isGenerating}

@@ -4,12 +4,13 @@ import { useEditorStore } from '../../stores/editorStore'
 import { assetRepository } from '../../services/storage/assetRepository'
 import { slideRepository } from '../../services/storage/slideRepository'
 
-type MenuArea = 'sidebar' | 'canvas' | 'history'
+type MenuArea = 'sidebar' | 'canvas' | 'history' | 'candidate'
 
 interface MenuInfo {
   src: string
   slideId?: string
   assetId?: string
+  taskId?: string
   area: MenuArea
   x: number
   y: number
@@ -20,11 +21,11 @@ export function ImageContextMenu() {
   const menuRef = useRef<HTMLDivElement>(null)
 
   const removeSlide = useDeckStore((s) => s.removeSlide)
-  const loadSlidesForDeck = useDeckStore((s) => s.loadSlidesForDeck)
   const currentDeckId = useDeckStore((s) => s.currentDeckId)
+  const selectSlideCandidate = useDeckStore((s) => s.selectSlideCandidate)
   const setCurrentSlideId = useEditorStore((s) => s.setCurrentSlideId)
   const currentSlideId = useEditorStore((s) => s.currentSlideId)
-  const loadSlideImage = useDeckStore((s) => s.loadSlideImage)
+  const removeEditTask = useEditorStore((s) => s.removeEditTask)
 
   useEffect(() => {
     const onContextMenu = (e: MouseEvent) => {
@@ -36,13 +37,15 @@ export function ImageContextMenu() {
       if (!area) return
 
       const src = imgEl.dataset.ctxSrc || (imgEl.tagName === 'IMG' ? (imgEl as HTMLImageElement).src : '')
-      if (!src) return
+      const assetId = imgEl.dataset.ctxAssetId
+      if (!src && !assetId) return
 
       e.preventDefault()
       setMenuInfo({
         src,
         slideId: imgEl.dataset.ctxSlideId,
-        assetId: imgEl.dataset.ctxAssetId,
+        assetId,
+        taskId: imgEl.dataset.ctxTaskId || undefined,
         area,
         x: e.clientX,
         y: e.clientY,
@@ -115,8 +118,21 @@ export function ImageContextMenu() {
   }, [menuInfo, getImageBlob])
 
   const handleDelete = useCallback(async () => {
-    if (!menuInfo?.slideId) return
+    if (!menuInfo) return
     setMenuInfo(null)
+
+    if (menuInfo.area === 'candidate') {
+      if (!menuInfo.taskId || !currentSlideId) return
+      const confirmed = window.confirm('确定要删除这个候选版本吗？')
+      if (!confirmed) return
+      if (menuInfo.assetId) {
+        await assetRepository.delete(menuInfo.assetId)
+      }
+      removeEditTask(currentSlideId, menuInfo.taskId)
+      return
+    }
+
+    if (!menuInfo.slideId) return
     const confirmed = window.confirm('确定要删除这一页吗？')
     if (!confirmed) return
 
@@ -143,34 +159,13 @@ export function ImageContextMenu() {
         })
       }
     }
-  }, [menuInfo, removeSlide, currentSlideId, setCurrentSlideId, currentDeckId])
+  }, [menuInfo, removeSlide, currentSlideId, setCurrentSlideId, currentDeckId, removeEditTask])
 
   const handleUse = useCallback(async () => {
     if (!menuInfo?.assetId || !currentSlideId) return
     setMenuInfo(null)
-
-    const record = await slideRepository.getById(currentSlideId)
-    if (!record) return
-
-    await slideRepository.update({
-      ...record,
-      currentAssetId: menuInfo.assetId,
-    })
-
-    const slides = useDeckStore.getState().slides
-    const slide = slides.find((s) => s.id === currentSlideId)
-    if (slide) {
-      useDeckStore.setState({
-        slides: slides.map((s) =>
-          s.id === currentSlideId ? { ...s, currentAssetId: menuInfo.assetId, imageUrl: undefined } : s,
-        ),
-      })
-      await loadSlideImage(currentSlideId)
-      if (currentDeckId) {
-        await loadSlidesForDeck(currentDeckId)
-      }
-    }
-  }, [menuInfo, currentSlideId, loadSlideImage, loadSlidesForDeck, currentDeckId])
+    await selectSlideCandidate(currentSlideId, menuInfo.assetId)
+  }, [menuInfo, currentSlideId, selectSlideCandidate])
 
   if (!menuInfo) return null
 
@@ -225,6 +220,7 @@ function getMenuItems(area: MenuArea) {
     case 'sidebar': return [copy, download, del]
     case 'canvas': return [copy, download]
     case 'history': return [copy, download, use]
+    case 'candidate': return [copy, download, del]
   }
 }
 
