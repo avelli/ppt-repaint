@@ -61,6 +61,7 @@ function App() {
 
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [originalAssetInfo, setOriginalAssetInfo] = useState<{ assetId: string; thumbnailUrl?: string } | null>(null)
+  const [pdfProgress, setPdfProgress] = useState<{ current: number; total: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const pdfInputRef = useRef<HTMLInputElement>(null)
 
@@ -178,12 +179,17 @@ function App() {
     if (!file) return
 
     try {
-      const deckId = await importPdf(file)
+      setPdfProgress({ current: 0, total: 1 })
+      const deckId = await importPdf(file, {
+        onProgress: (current, total) => setPdfProgress({ current, total }),
+      })
       await loadDecks()
       setCurrentDeckId(deckId)
       await loadSlidesForDeck(deckId)
     } catch (err) {
       alert(err instanceof Error ? err.message : '导入 PDF 失败')
+    } finally {
+      setPdfProgress(null)
     }
 
     if (pdfInputRef.current) {
@@ -378,6 +384,7 @@ function App() {
             onExportPptx={handleExportPptx}
             onNewProject={handleNewProject}
             isLoading={isLoading}
+            pdfProgress={pdfProgress}
             decks={decks}
             currentDeckId={currentDeckId}
             onDeckSelect={setCurrentDeckId}

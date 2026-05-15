@@ -22,6 +22,7 @@ interface SlideSidebarProps {
   onExportPptx?: () => void
   onNewProject?: () => void
   isLoading?: boolean
+  pdfProgress?: { current: number; total: number } | null
   decks?: Deck[]
   currentDeckId?: string | null
   onDeckSelect?: (id: string) => void
@@ -307,7 +308,7 @@ function EditableTitle({ slideId, title, onRename }: { slideId: string; title: s
   )
 }
 
-export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
+export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onSlideRename, onToggleCollapse, onImport, onImportPdf, onExportPptx, onNewProject, isLoading, pdfProgress, decks, currentDeckId, onDeckSelect, onDeckRename, onDeckDelete }: SlideSidebarProps) {
   const currentDeck = decks?.find((d) => d.id === currentDeckId)
 
   if (collapsed) {
@@ -347,6 +348,21 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
           {isLoading ? '加载中...' : `共 ${totalPages} 页`}
         </span>
       </header>
+
+      {pdfProgress && (
+        <div className="px-3 pb-2 shrink-0">
+          <div className="flex items-center justify-between text-xs text-warm-700/70 mb-1">
+            <span>导入 PDF 中...</span>
+            <span>{pdfProgress.current}/{pdfProgress.total}</span>
+          </div>
+          <div className="w-full h-1.5 bg-cream-300 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-sage-500 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${(pdfProgress.current / pdfProgress.total) * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {currentDeck && (
         <DeckTitleBar

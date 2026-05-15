@@ -17,6 +17,7 @@ const RENDER_SCALE = 2
 
 export interface ImportPdfOptions {
   title?: string
+  onProgress?: (current: number, total: number) => void
 }
 
 export async function importPdf(
@@ -38,6 +39,8 @@ export async function importPdf(
   const slideIds: string[] = []
 
   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+    options?.onProgress?.(pageNum, pdf.numPages)
+
     const page = await pdf.getPage(pageNum)
     const viewport = page.getViewport({ scale: RENDER_SCALE })
 
