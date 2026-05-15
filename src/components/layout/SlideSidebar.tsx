@@ -529,6 +529,13 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
           }`} />
         </div>
       </div>
+      {slides.length > 0 && (
+        <div className="shrink-0 border-t border-cream-300/60 px-3 py-1 flex items-center">
+          <span className="text-xs text-warm-700/50 font-medium">
+            {slides.findIndex((s) => s.isCurrent) + 1}/{slides.length}
+          </span>
+        </div>
+      )}
     </div>
   )
 }
