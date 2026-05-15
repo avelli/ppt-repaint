@@ -99,11 +99,12 @@ export function ImageContextMenu() {
     setMenuInfo(null)
     try {
       const blob = await getImageBlob(menuInfo.src, menuInfo.assetId)
-      const url = URL.createObjectURL(blob)
+      const pngBlob = blob.type === 'image/png' ? blob : await convertToPng(blob)
+      const url = URL.createObjectURL(pngBlob)
       const a = document.createElement('a')
       a.href = url
-      const ext = blob.type.split('/')[1] || 'png'
-      a.download = `slide-${Date.now()}.${ext}`
+      const ts = formatTimestamp(new Date())
+      a.download = `oh-my-ppt_${ts}.png`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -234,6 +235,16 @@ async function convertToPng(blob: Blob): Promise<Blob> {
   ctx.drawImage(bitmap, 0, 0)
   bitmap.close()
   return canvas.convertToBlob({ type: 'image/png' })
+}
+
+function formatTimestamp(date: Date): string {
+  const y = date.getFullYear()
+  const mo = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const mi = String(date.getMinutes()).padStart(2, '0')
+  const s = String(date.getSeconds()).padStart(2, '0')
+  return `${y}${mo}${d}_${h}${mi}${s}`
 }
 
 function CopyIcon() {
