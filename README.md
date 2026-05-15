@@ -58,8 +58,8 @@ src/
 
 本项目的开发受到以下开源项目的启发，特此感谢：
 
-- [gpt_image_playground](https://github.com/Nutlope/gpt-image-playground) — 图片生成与编辑的交互模式、API 调用方式和本地历史管理
-- [oh-my-ppt](https://github.com/nicepkg/oh-my-ppt) — PPT 工作台布局、页面列表交互和编辑器设计思路
+- [gpt_image_playground](https://github.com/CookSleep/gpt_image_playground) — 图片生成与编辑的交互模式、API 调用方式和本地历史管理
+- [oh-my-ppt](https://github.com/arcsin1/oh-my-ppt) — PPT 工作台布局、页面列表交互和编辑器设计思路
 
 ## License
 
