@@ -1,3 +1,10 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+
 # Logs
 logs
 *.log
@@ -7,10 +14,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Environment & secrets
 *.local
+.env
+.env.*
 
 # Editor directories and files
 .vscode/*
@@ -22,8 +29,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Reference projects (not part of this repo)
 gpt_image_playground/
 oh-my-ppt/
+
+# Tool-generated files
+.bytro
 CLAUDE.md
-# CocoIndex Code (ccc)
-/.cocoindex_code/
+.cocoindex_code/
+
+# OS files
+Thumbs.db
+Desktop.ini

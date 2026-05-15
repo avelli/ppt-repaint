@@ -17,7 +17,6 @@ import { slideRepository } from './services/storage/slideRepository'
 import { importImages, SUPPORTED_IMAGE_TYPES } from './services/importer/importImages'
 import { importPdf } from './services/importer/importPdf'
 import { exportPptx } from './services/export/exportPptx'
-import './App.css'
 
 function App() {
   const decks = useDeckStore((s) => s.decks)

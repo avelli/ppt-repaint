@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# Oh My PPT Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+纯前端 AI PPT 修改工作台。导入已有 PPT 页面截图或 PDF，通过 gpt-image-2 对单页或整套 PPT 进行美化、重绘、统一风格和导出。
 
-Currently, two official plugins are available:
+## 特性
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- 导入图片（多图）或 PDF 逐页导入
+- 单页 AI 编辑（gpt-image-2）
+- 多版本对比与切换
+- 导出为 PPTX / PDF / 图片 ZIP
+- 纯浏览器运行，无需后端，数据存储在 IndexedDB
+- 用户自行提供 OpenAI API Key
 
-## React Compiler
+## 技术栈
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+React 19 + TypeScript + Vite 8 + Tailwind CSS + Zustand
 
-## Expanding the ESLint configuration
+## 快速开始
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+```bash
+# 安装依赖
+npm install
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# 启动开发服务器
+npm run dev
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 构建生产版本
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 使用说明
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. 打开应用后，点击「导入图片」或「导入 PDF」添加幻灯片
+2. 点击右上角设置图标，配置 OpenAI API Key
+3. 在右侧编辑面板输入修改指令，AI 将生成新版本
+4. 在右侧面板切换不同版本进行对比
+5. 完成编辑后导出为 PPTX
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 项目结构
+
 ```
+src/
+├── app/           # 应用入口（router, providers）
+├── pages/         # 页面组件
+├── components/    # UI 组件（layout, slide, editor, ui）
+├── services/      # 业务服务（image, importer, export, storage）
+├── stores/        # Zustand 状态管理
+├── hooks/         # 自定义 hooks
+├── constants/     # 常量定义
+├── types/         # TypeScript 类型
+└── utils/         # 工具函数
+```
+
+## License
+
+MIT
