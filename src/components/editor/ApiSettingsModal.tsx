@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSettingsStore } from '../../stores/settingsStore'
 import type { SettingsState } from '../../stores/settingsStore'
 
@@ -113,8 +113,17 @@ export function ApiSettingsModal({ open, onClose }: ApiSettingsModalProps) {
     })
   }
 
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) onClose()
+  const backdropMouseDownTarget = useRef<EventTarget | null>(null)
+
+  const handleBackdropMouseDown = (e: React.MouseEvent) => {
+    backdropMouseDownTarget.current = e.target
+  }
+
+  const handleBackdropMouseUp = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget && backdropMouseDownTarget.current === e.currentTarget) {
+      onClose()
+    }
+    backdropMouseDownTarget.current = null
   }
 
   const maskedKey = local.apiKey
@@ -126,7 +135,8 @@ export function ApiSettingsModal({ open, onClose }: ApiSettingsModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
-      onClick={handleBackdropClick}
+      onMouseDown={handleBackdropMouseDown}
+      onMouseUp={handleBackdropMouseUp}
     >
       <div className="w-[480px] max-h-[85vh] bg-white rounded-2xl shadow-xl border border-cream-300 overflow-hidden flex flex-col">
         {/* Header */}
