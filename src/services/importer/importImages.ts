@@ -18,6 +18,7 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 
 export interface ImportImagesOptions {
   title?: string
+  deckId?: string
 }
 
 export async function importImages(
@@ -36,7 +37,22 @@ export async function importImages(
     throw new Error('没有有效的图片文件')
   }
 
-  const deckId = generateId()
+  const existingDeckId = options?.deckId
+  let deckId: string
+  let startPageNumber: number
+
+  if (existingDeckId) {
+    const existingDeck = await deckRepository.getById(existingDeckId)
+    if (!existingDeck) {
+      throw new Error('指定的演示文稿不存在')
+    }
+    deckId = existingDeckId
+    startPageNumber = existingDeck.slides.length + 1
+  } else {
+    deckId = generateId()
+    startPageNumber = 1
+  }
+
   const slideIds: string[] = []
 
   for (let i = 0; i < validFiles.length; i++) {
@@ -60,7 +76,7 @@ export async function importImages(
     const record: SlideRecord = {
       id: slideId,
       deckId,
-      pageNumber: i + 1,
+      pageNumber: startPageNumber + i,
       currentAssetId: assetId,
       versions: [{
         id: versionId,
@@ -73,16 +89,26 @@ export async function importImages(
     slideIds.push(slideId)
   }
 
-  const title = options?.title ?? deriveTitle(validFiles[0].name)
-  const now = Date.now()
-  const deck: Deck = {
-    id: deckId,
-    title,
-    slides: slideIds,
-    createdAt: now,
-    updatedAt: now,
+  if (existingDeckId) {
+    const deck = (await deckRepository.getById(existingDeckId))!
+    const updated: Deck = {
+      ...deck,
+      slides: [...deck.slides, ...slideIds],
+      updatedAt: Date.now(),
+    }
+    await deckRepository.update(updated)
+  } else {
+    const title = options?.title ?? deriveTitle(validFiles[0].name)
+    const now = Date.now()
+    const deck: Deck = {
+      id: deckId,
+      title,
+      slides: slideIds,
+      createdAt: now,
+      updatedAt: now,
+    }
+    await deckRepository.create(deck)
   }
-  await deckRepository.create(deck)
 
   return deckId
 }

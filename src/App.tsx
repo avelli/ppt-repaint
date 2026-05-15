@@ -67,15 +67,18 @@ function App() {
     if (!files || files.length === 0) return
 
     const fileArray = Array.from(files)
-    const deckId = await importImages(fileArray)
+    const deckId = await importImages(fileArray, {
+      deckId: currentDeckId ?? undefined,
+    })
 
     await loadDecks()
     setCurrentDeckId(deckId)
+    await loadSlidesForDeck(deckId)
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [loadDecks, setCurrentDeckId])
+  }, [currentDeckId, loadDecks, setCurrentDeckId, loadSlidesForDeck])
 
   const handleSlideSelect = useCallback((id: string) => {
     setCurrentSlideId(id)
