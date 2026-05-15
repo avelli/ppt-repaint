@@ -125,10 +125,22 @@ export function ImageContextMenu() {
       if (!menuInfo.taskId || !currentSlideId) return
       const confirmed = window.confirm('确定要删除这个候选版本吗？')
       if (!confirmed) return
-      if (menuInfo.assetId) {
-        await assetRepository.delete(menuInfo.assetId)
+
+      const deletedAssetId = menuInfo.assetId
+      const slide = useDeckStore.getState().slides.find((s) => s.id === currentSlideId)
+      const isCurrentlyUsed = slide && deletedAssetId && slide.currentAssetId === deletedAssetId
+
+      if (deletedAssetId) {
+        await assetRepository.delete(deletedAssetId)
       }
       removeEditTask(currentSlideId, menuInfo.taskId)
+
+      if (isCurrentlyUsed) {
+        const originalAssetId = await useDeckStore.getState().getOriginalAssetId(currentSlideId)
+        if (originalAssetId) {
+          await selectSlideCandidate(currentSlideId, originalAssetId)
+        }
+      }
       return
     }
 
