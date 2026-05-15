@@ -35,8 +35,23 @@ function SidebarToggleButton({ collapsed, onClick }: { collapsed: boolean; onCli
 export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onToggleCollapse }: SlideSidebarProps) {
   if (collapsed) {
     return (
-      <div className={`flex flex-col h-full ${HEADER_PX} ${HEADER_PY}`}>
+      <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY} gap-2`}>
         <SidebarToggleButton collapsed onClick={onToggleCollapse} />
+        <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+          {slides.map((slide) => (
+            <button
+              key={slide.id}
+              onClick={() => onSlideSelect(slide.id)}
+              className={`w-9 h-9 rounded-lg border flex items-center justify-center text-xs font-medium transition-colors ${
+                slide.isCurrent
+                  ? 'border-sage-400 bg-sage-400 text-white'
+                  : 'border-cream-400 bg-cream-50 text-warm-700 hover:bg-cream-200'
+              }`}
+            >
+              {slide.pageNumber}
+            </button>
+          ))}
+        </div>
       </div>
     )
   }
