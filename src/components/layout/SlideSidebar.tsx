@@ -421,7 +421,7 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
               }`}
             >
               <div
-                className="aspect-[16/9] bg-white rounded-xl m-1 overflow-hidden flex items-center justify-center relative"
+                className="aspect-[16/9] bg-cream-100 overflow-hidden flex items-center justify-center relative"
                 data-ctx-area="sidebar"
                 data-ctx-src={slide.thumbnailUrl || ''}
                 data-ctx-slide-id={slide.id}
