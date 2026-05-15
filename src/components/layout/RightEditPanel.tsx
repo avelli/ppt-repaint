@@ -50,7 +50,12 @@ function SettingsButton({ onClick }: { onClick: () => void }) {
 function TaskCardItem({ task }: { task: EditTask }) {
   return (
     <div className="flex gap-3 p-3 rounded-xl border border-cream-300 bg-white hover:shadow-sm transition-shadow">
-      <div className="w-24 h-16 rounded-lg bg-cream-200 shrink-0 overflow-hidden flex items-center justify-center">
+      <div
+        className="w-24 h-16 rounded-lg bg-cream-200 shrink-0 overflow-hidden flex items-center justify-center"
+        data-ctx-area="history"
+        data-ctx-src={task.thumbnailUrl || ''}
+        data-ctx-asset-id={task.resultAssetId || ''}
+      >
         {task.thumbnailUrl ? (
           <img src={task.thumbnailUrl} alt="" className="w-full h-full object-cover" />
         ) : (

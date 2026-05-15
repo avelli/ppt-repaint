@@ -50,7 +50,11 @@ export function SlideCanvas({ title, imageUrl, onImport, isEmpty }: SlideCanvasP
         </h1>
       </header>
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-[900px] aspect-[16/9] bg-white rounded-2xl shadow-lg border border-cream-300 overflow-hidden flex items-center justify-center">
+        <div
+          className="w-full max-w-[900px] aspect-[16/9] bg-white rounded-2xl shadow-lg border border-cream-300 overflow-hidden flex items-center justify-center"
+          data-ctx-area="canvas"
+          data-ctx-src={imageUrl || ''}
+        >
           {imageUrl ? (
             <img
               src={imageUrl}

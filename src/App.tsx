@@ -4,6 +4,7 @@ import { SlideSidebar } from './components/layout/SlideSidebar'
 import { RightEditPanel } from './components/layout/RightEditPanel'
 import { SlideCanvas } from './components/slide/SlideCanvas'
 import { ApiSettingsModal } from './components/editor/ApiSettingsModal'
+import { ImageContextMenu } from './components/ui/ImageContextMenu'
 import { useDeckStore } from './stores/deckStore'
 import { useEditorStore } from './stores/editorStore'
 import { useSettingsStore } from './stores/settingsStore'
@@ -228,6 +229,7 @@ function App() {
         className="hidden"
       />
       <ApiSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ImageContextMenu />
       <AppShell
         sidebar={({ collapsed, onToggleCollapse }) => (
           <SlideSidebar
