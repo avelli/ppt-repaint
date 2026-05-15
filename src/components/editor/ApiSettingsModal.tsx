@@ -8,7 +8,6 @@ interface ApiSettingsModalProps {
 }
 
 const SIZE_OPTIONS = [
-  { value: 'auto', label: 'auto' },
   { value: '1920x1080', label: '1920×1080 (Full HD)' },
   { value: '2560x1440', label: '2560×1440 (2K)' },
   { value: '3840x2160', label: '3840×2160 (4K)' },
