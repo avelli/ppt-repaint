@@ -2,6 +2,15 @@
 
 厌倦了豆包、Kimi、千问等网页端大模型生成 PPT 的单调和千篇一律，又不知道该如何修改 NotebookLM 生成的 PPT？本工具正是为此而诞生的。
 
+<br>
+
+[![Vercel 在线体验](https://img.shields.io/badge/Vercel-%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-black?style=for-the-badge&logo=vercel&logoColor=white)](https://ppt-repaint.vercel.app/)
+&nbsp;&nbsp;&nbsp;
+
+</div>
+
+<br>
+
 AI 驱动的 PPT 重绘工作台。导入已有的 PPT 页面截图或 PDF，通过 gpt-image-2 对单页或整套幻灯片进行美化、重绘、风格统一，然后导出为 PPTX。
 
 纯前端应用，无需后端服务器，所有数据存储在浏览器本地。
