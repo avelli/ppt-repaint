@@ -127,6 +127,9 @@ function App() {
             onImport={handleImport}
             onNewProject={handleNewProject}
             isLoading={isLoading}
+            decks={decks}
+            currentDeckId={currentDeckId}
+            onDeckSelect={setCurrentDeckId}
           />
         )}
         rightPanel={({ collapsed, onToggleCollapse }) => (
