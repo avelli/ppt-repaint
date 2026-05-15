@@ -5,7 +5,7 @@ import type {
   ImageProviderConfig,
 } from './imageProvider.types'
 
-const DEFAULT_SIZE = '1536x1024'
+const DEFAULT_SIZE = 'auto'
 const DEFAULT_QUALITY = 'auto'
 const DEFAULT_OUTPUT_FORMAT = 'png'
 const DEFAULT_MODERATION = 'auto'

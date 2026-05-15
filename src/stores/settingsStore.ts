@@ -33,7 +33,7 @@ type SettingsStore = SettingsState & SettingsActions
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1'
 const DEFAULT_MODEL = 'gpt-image-1'
 const DEFAULT_TIMEOUT = 600
-const DEFAULT_SIZE = '1536x1024'
+const DEFAULT_SIZE = 'auto'
 
 const defaultState: SettingsState = {
   apiKey: '',
