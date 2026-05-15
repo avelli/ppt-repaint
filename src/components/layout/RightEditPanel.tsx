@@ -1,12 +1,6 @@
-interface RightEditPanelProps {
-  collapsed: boolean
-  onToggleCollapse: () => void
-}
+import { useState } from 'react'
 
-const HEADER_PX = 'px-3'
-const HEADER_PY = 'py-3'
-
-interface TaskCard {
+export interface EditTask {
   id: string
   prompt: string
   thumbnailUrl?: string
@@ -14,11 +8,16 @@ interface TaskCard {
   createdAt: string
 }
 
-const mockTasks: TaskCard[] = [
-  { id: '1', prompt: '将整体风格改为深色商务风', status: 'done', createdAt: '14:32' },
-  { id: '2', prompt: '标题字体放大，增加渐变背景', status: 'done', createdAt: '14:28' },
-  { id: '3', prompt: '添加数据图表占位区域', status: 'done', createdAt: '14:15' },
-]
+interface RightEditPanelProps {
+  collapsed: boolean
+  onToggleCollapse: () => void
+  slideTitle: string
+  tasks: EditTask[]
+  onSubmit: (prompt: string) => void
+}
+
+const HEADER_PX = 'px-3'
+const HEADER_PY = 'py-3'
 
 function PanelToggleButton({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {
   return (
@@ -35,10 +34,9 @@ function PanelToggleButton({ collapsed, onClick }: { collapsed: boolean; onClick
   )
 }
 
-function TaskCardItem({ task }: { task: TaskCard }) {
+function TaskCardItem({ task }: { task: EditTask }) {
   return (
     <div className="flex gap-3 p-3 rounded-xl border border-cream-300 bg-white hover:shadow-sm transition-shadow">
-      {/* Thumbnail */}
       <div className="w-24 h-16 rounded-lg bg-cream-200 shrink-0 overflow-hidden flex items-center justify-center">
         {task.thumbnailUrl ? (
           <img src={task.thumbnailUrl} alt="" className="w-full h-full object-cover" />
@@ -50,8 +48,6 @@ function TaskCardItem({ task }: { task: TaskCard }) {
           </svg>
         )}
       </div>
-
-      {/* Content */}
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <p className="text-sm text-warm-800 font-medium line-clamp-2">{task.prompt}</p>
         <div className="flex items-center justify-between mt-1">
@@ -59,13 +55,32 @@ function TaskCardItem({ task }: { task: TaskCard }) {
           {task.status === 'generating' && (
             <span className="text-xs text-sage-600 font-medium">生成中...</span>
           )}
+          {task.status === 'error' && (
+            <span className="text-xs text-red-500 font-medium">失败</span>
+          )}
         </div>
       </div>
     </div>
   )
 }
 
-export function RightEditPanel({ collapsed, onToggleCollapse }: RightEditPanelProps) {
+export function RightEditPanel({ collapsed, onToggleCollapse, slideTitle, tasks, onSubmit }: RightEditPanelProps) {
+  const [inputValue, setInputValue] = useState('')
+
+  const handleSubmit = () => {
+    const trimmed = inputValue.trim()
+    if (!trimmed) return
+    onSubmit(trimmed)
+    setInputValue('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
   if (collapsed) {
     return (
       <div className={`flex flex-col items-center h-full ${HEADER_PX} ${HEADER_PY}`}>
@@ -78,16 +93,17 @@ export function RightEditPanel({ collapsed, onToggleCollapse }: RightEditPanelPr
     <div className="flex flex-col h-full">
       {/* Header */}
       <header className={`flex items-center justify-between ${HEADER_PX} ${HEADER_PY} shrink-0 border-b border-cream-300/60`}>
-        <span className="text-sm text-warm-700 font-medium">编辑历史</span>
+        <span className="text-sm text-warm-700 font-medium truncate mr-2">{slideTitle}</span>
         <PanelToggleButton collapsed={false} onClick={onToggleCollapse} />
       </header>
 
       {/* Task Card List */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-        {mockTasks.map((task) => (
-          <TaskCardItem key={task.id} task={task} />
-        ))}
-        {mockTasks.length === 0 && (
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <TaskCardItem key={task.id} task={task} />
+          ))
+        ) : (
           <div className="flex flex-col items-center justify-center h-full text-cream-500 text-sm">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="mb-2">
               <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
@@ -102,10 +118,17 @@ export function RightEditPanel({ collapsed, onToggleCollapse }: RightEditPanelPr
         <div className="flex items-end gap-2">
           <textarea
             rows={1}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="描述你想要的修改效果..."
             className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-cream-400 bg-white px-4 py-2.5 text-sm text-warm-900 placeholder:text-cream-500 resize-none focus:outline-none focus:border-sage-400 transition-colors"
           />
-          <button className="w-10 h-10 rounded-xl bg-sage-500 flex items-center justify-center hover:bg-sage-600 transition-colors shrink-0">
+          <button
+            onClick={handleSubmit}
+            disabled={!inputValue.trim()}
+            className="w-10 h-10 rounded-xl bg-sage-500 flex items-center justify-center hover:bg-sage-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />

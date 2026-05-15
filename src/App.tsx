@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { AppShell } from './components/layout/AppShell'
 import { SlideSidebar } from './components/layout/SlideSidebar'
-import { RightEditPanel } from './components/layout/RightEditPanel'
+import { RightEditPanel, type EditTask } from './components/layout/RightEditPanel'
 import { SlideCanvas } from './components/slide/SlideCanvas'
 import './App.css'
 
@@ -18,6 +18,7 @@ const mockSlides = [
 
 function App() {
   const [currentSlideId, setCurrentSlideId] = useState('1')
+  const [editHistory, setEditHistory] = useState<Record<string, EditTask[]>>({})
 
   const slides = mockSlides.map((s) => ({
     ...s,
@@ -25,6 +26,20 @@ function App() {
   }))
 
   const currentSlide = slides.find((s) => s.id === currentSlideId)
+  const currentTasks = editHistory[currentSlideId] ?? []
+
+  const handleSubmitEdit = useCallback((prompt: string) => {
+    const newTask: EditTask = {
+      id: `${currentSlideId}-${Date.now()}`,
+      prompt,
+      status: 'done',
+      createdAt: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+    }
+    setEditHistory((prev) => ({
+      ...prev,
+      [currentSlideId]: [newTask, ...(prev[currentSlideId] ?? [])],
+    }))
+  }, [currentSlideId])
 
   return (
     <AppShell
@@ -41,6 +56,9 @@ function App() {
         <RightEditPanel
           collapsed={collapsed}
           onToggleCollapse={onToggleCollapse}
+          slideTitle={currentSlide?.title ?? '未命名'}
+          tasks={currentTasks}
+          onSubmit={handleSubmitEdit}
         />
       )}
     >
