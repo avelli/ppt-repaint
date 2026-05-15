@@ -1,10 +1,10 @@
 interface SlideCanvasProps {
   title: string
   imageUrl?: string
-  onInspectClick?: () => void
+  generationCount: number
 }
 
-export function SlideCanvas({ title, imageUrl }: SlideCanvasProps) {
+export function SlideCanvas({ title, imageUrl, generationCount }: SlideCanvasProps) {
   return (
     <div className="flex flex-col h-full p-8">
       <header className="flex items-center justify-between mb-6 shrink-0">
@@ -13,7 +13,7 @@ export function SlideCanvas({ title, imageUrl }: SlideCanvasProps) {
         </h1>
       </header>
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-[900px] aspect-[16/9] bg-white rounded-2xl shadow-lg border border-cream-300 overflow-hidden flex items-center justify-center">
+        <div className="relative w-full max-w-[900px] aspect-[16/9] bg-white rounded-2xl shadow-lg border border-cream-300 overflow-hidden flex items-center justify-center">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -28,6 +28,17 @@ export function SlideCanvas({ title, imageUrl }: SlideCanvasProps) {
                 <polyline points="21 15 16 10 5 21" />
               </svg>
               <p className="text-sm">选择一页幻灯片开始编辑</p>
+            </div>
+          )}
+
+          {/* Generation count badge */}
+          {generationCount > 0 && (
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-warm-900/70 text-white text-xs font-medium backdrop-blur-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="16" height="16" rx="2" />
+                <rect x="6" y="6" width="16" height="16" rx="2" />
+              </svg>
+              <span>{generationCount}</span>
             </div>
           )}
         </div>

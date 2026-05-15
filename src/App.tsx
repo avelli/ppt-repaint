@@ -73,6 +73,7 @@ function App() {
     >
       <SlideCanvas
         title={currentSlide?.title ?? '未命名演示文稿'}
+        generationCount={currentTasks.length}
       />
     </AppShell>
   )
