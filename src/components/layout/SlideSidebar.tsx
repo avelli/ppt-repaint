@@ -315,19 +315,10 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
   const currentDeck = decks?.find((d) => d.id === currentDeckId)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
-  const [insertIndex, setInsertIndex] = useState<number | null>(null)
-
-  const handleGapClick = useCallback((index: number) => {
-    const newVal = insertIndex === index ? null : index
-    setInsertIndex(newVal)
-    onInsertIndexChange?.(newVal)
-  }, [insertIndex, onInsertIndexChange])
 
   const handleSlideClick = useCallback((id: string) => {
-    setInsertIndex(null)
-    onInsertIndexChange?.(null)
     onSlideSelect(id)
-  }, [onSlideSelect, onInsertIndexChange])
+  }, [onSlideSelect])
 
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     setDragIndex(index)
@@ -465,15 +456,12 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
             onDrop={handleDrop}
             onDragEnd={handleDragEnd}
           >
-            {/* 间隙插入指示区 */}
-            <div
-              className="relative cursor-pointer h-2"
-              onClick={(e) => { e.stopPropagation(); handleGapClick(index) }}
-            >
-              <div className={`absolute inset-x-2 top-1/2 -translate-y-1/2 h-0.5 rounded-full transition-colors ${
-                dropIndex === index || insertIndex === index
+            {/* 间隙指示区 */}
+            <div className="relative h-3 ml-[26px] group/gap">
+              <div className={`absolute inset-x-4 top-1/2 -translate-y-1/2 h-0.5 rounded-full transition-colors ${
+                dropIndex === index
                   ? 'bg-sage-500'
-                  : 'bg-transparent'
+                  : 'bg-transparent group-hover/gap:bg-cream-400'
               }`} />
             </div>
             <div className="flex items-start gap-1.5">
@@ -518,14 +506,11 @@ export function SlideSidebar({ slides, totalPages, collapsed, onSlideSelect, onS
           </div>
         ))}
         {/* 末尾间隙 */}
-        <div
-          className="relative cursor-pointer h-2"
-          onClick={(e) => { e.stopPropagation(); handleGapClick(slides.length) }}
-        >
-          <div className={`absolute inset-x-2 top-1/2 -translate-y-1/2 h-0.5 rounded-full transition-colors ${
-            dropIndex === slides.length || insertIndex === slides.length
+        <div className="relative h-3 ml-[26px] group/gap">
+          <div className={`absolute inset-x-4 top-1/2 -translate-y-1/2 h-0.5 rounded-full transition-colors ${
+            dropIndex === slides.length
               ? 'bg-sage-500'
-              : 'bg-transparent'
+              : 'bg-transparent group-hover/gap:bg-cream-400'
           }`} />
         </div>
       </div>
