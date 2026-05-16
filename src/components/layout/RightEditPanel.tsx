@@ -220,7 +220,7 @@ export function RightEditPanel({ collapsed, onToggleCollapse, candidates, onSele
       </div>
 
       {/* Bottom Input Bar */}
-      <div className={`shrink-0 border-t border-cream-300/60 px-3 py-3 ${isMobile ? 'pb-4' : ''}`}>
+      <div className="shrink-0 border-t border-cream-300/60 px-3 py-3">
         <div className="flex items-end gap-2">
           <textarea
             rows={1}

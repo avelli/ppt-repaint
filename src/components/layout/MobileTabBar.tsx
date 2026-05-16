@@ -9,7 +9,7 @@ interface MobileTabBarProps {
 
 export function MobileTabBar({ activeTab, onTabChange, slideCount, isGenerating }: MobileTabBarProps) {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-14 items-center border-t border-cream-400/60 bg-cream-100/95 backdrop-blur-sm safe-area-bottom">
+    <nav className="flex h-14 shrink-0 items-center border-t border-cream-400/60 bg-cream-100 safe-area-bottom">
       <button
         onClick={() => onTabChange('slides')}
         className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-1 transition-colors ${
