@@ -1,3 +1,5 @@
+import { useIsMobile } from '../../hooks/useIsMobile'
+
 interface SlideCanvasProps {
   title: string
   imageUrl?: string
@@ -6,16 +8,18 @@ interface SlideCanvasProps {
 }
 
 export function SlideCanvas({ title, imageUrl, onImport, isEmpty }: SlideCanvasProps) {
+  const isMobile = useIsMobile()
+
   if (isEmpty) {
     return (
-      <div className="flex flex-col h-full items-center justify-center p-8">
+      <div className="flex flex-col h-full items-center justify-center p-4 md:p-8">
         <div className="text-center max-w-md">
-          <svg className="mx-auto mb-4" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="mx-auto mb-4" width={isMobile ? 48 : 64} height={isMobile ? 48 : 64} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2" className="text-cream-400" />
             <circle cx="8.5" cy="8.5" r="1.5" className="text-cream-400" />
             <polyline points="21 15 16 10 5 21" className="text-cream-400" />
           </svg>
-          <h2 className="text-xl font-semibold text-warm-800 mb-2 font-display">
+          <h2 className="text-lg md:text-xl font-semibold text-warm-800 mb-2 font-display">
             开始编辑你的 PPT
           </h2>
           <p className="text-sm text-warm-700/60 mb-6">
@@ -24,7 +28,7 @@ export function SlideCanvas({ title, imageUrl, onImport, isEmpty }: SlideCanvasP
           {onImport && (
             <button
               onClick={onImport}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 active:bg-sage-700 transition-colors shadow-sm"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -43,15 +47,15 @@ export function SlideCanvas({ title, imageUrl, onImport, isEmpty }: SlideCanvasP
   }
 
   return (
-    <div className="flex flex-col h-full p-8">
-      <header className="flex items-center justify-center mb-6 shrink-0">
-        <h1 className="text-2xl font-semibold text-warm-900 font-display">
+    <div className="flex flex-col h-full p-3 md:p-8">
+      <header className="flex items-center justify-center mb-3 md:mb-6 shrink-0">
+        <h1 className="text-lg md:text-2xl font-semibold text-warm-900 font-display">
           {title}
         </h1>
       </header>
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center min-h-0">
         <div
-          className="w-full max-w-[900px] aspect-[16/9] bg-white rounded-2xl shadow-lg border border-cream-300 overflow-hidden flex items-center justify-center"
+          className="w-full max-w-[900px] aspect-[16/9] bg-white rounded-xl md:rounded-2xl shadow-lg border border-cream-300 overflow-hidden flex items-center justify-center"
           data-ctx-area="canvas"
           data-ctx-src={imageUrl || ''}
         >
@@ -60,6 +64,7 @@ export function SlideCanvas({ title, imageUrl, onImport, isEmpty }: SlideCanvasP
               src={imageUrl}
               alt="当前幻灯片"
               className="w-full h-full object-contain"
+              draggable={false}
             />
           ) : (
             <div className="text-center text-cream-500">

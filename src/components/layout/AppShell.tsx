@@ -1,9 +1,13 @@
 import { type ReactNode, useState, useCallback } from 'react'
+import { useIsMobile } from '../../hooks/useIsMobile'
+import { MobileTabBar, type MobileTab } from './MobileTabBar'
 
 interface AppShellProps {
   sidebar: (props: { collapsed: boolean; onToggleCollapse: () => void }) => ReactNode
   rightPanel: (props: { collapsed: boolean; onToggleCollapse: () => void }) => ReactNode
   children: ReactNode
+  slideCount?: number
+  isGenerating?: boolean
 }
 
 const LEFT_MIN_WIDTH = 200
@@ -48,7 +52,39 @@ function useResizable(defaultWidth: number, minWidth: number, maxWidth: number) 
   return { width, setWidth, isDragging, handleMouseDown }
 }
 
-export function AppShell({ sidebar, rightPanel, children }: AppShellProps) {
+function MobileShell({ sidebar, rightPanel, children, slideCount = 0, isGenerating }: AppShellProps) {
+  const [activeTab, setActiveTab] = useState<MobileTab>('canvas')
+
+  return (
+    <div className="flex h-[100dvh] w-screen flex-col overflow-hidden">
+      <div className="flex-1 overflow-hidden">
+        {activeTab === 'slides' && (
+          <div className="h-full overflow-auto bg-cream-100">
+            {sidebar({ collapsed: false, onToggleCollapse: () => setActiveTab('canvas') })}
+          </div>
+        )}
+        {activeTab === 'canvas' && (
+          <main className="h-full overflow-auto bg-cream-50">
+            {children}
+          </main>
+        )}
+        {activeTab === 'edit' && (
+          <div className="h-full overflow-auto bg-cream-100">
+            {rightPanel({ collapsed: false, onToggleCollapse: () => setActiveTab('canvas') })}
+          </div>
+        )}
+      </div>
+      <MobileTabBar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        slideCount={slideCount}
+        isGenerating={isGenerating}
+      />
+    </div>
+  )
+}
+
+function DesktopShell({ sidebar, rightPanel, children }: AppShellProps) {
   const left = useResizable(LEFT_DEFAULT_WIDTH, LEFT_MIN_WIDTH, LEFT_MAX_WIDTH)
   const right = useResizable(RIGHT_DEFAULT_WIDTH, RIGHT_MIN_WIDTH, RIGHT_MAX_WIDTH)
   const [leftCollapsed, setLeftCollapsed] = useState(false)
@@ -117,4 +153,9 @@ export function AppShell({ sidebar, rightPanel, children }: AppShellProps) {
       {anyDragging && <div className="fixed inset-0 z-50 cursor-col-resize select-none" />}
     </div>
   )
+}
+
+export function AppShell(props: AppShellProps) {
+  const isMobile = useIsMobile()
+  return isMobile ? <MobileShell {...props} /> : <DesktopShell {...props} />
 }

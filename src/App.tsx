@@ -524,6 +524,8 @@ function App() {
       <ApiSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ImageContextMenu />
       <AppShell
+        slideCount={slides.length}
+        isGenerating={isGenerating}
         sidebar={({ collapsed, onToggleCollapse }) => (
           <SlideSidebar
             slides={slidesWithState}

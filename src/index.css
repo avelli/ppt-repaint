@@ -39,6 +39,14 @@
   .scrollbar-styled::-webkit-scrollbar-button {
     display: none;
   }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
 }
 
 @layer base {

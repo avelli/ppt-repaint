@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import type { Deck } from '../../types/deck'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 interface SlideItem {
   id: string
@@ -259,6 +260,7 @@ export function SlideSidebar({ slides, collapsed, onSlideSelect, onReorderSlides
   const currentDeck = decks?.find((d) => d.id === currentDeckId)
   const [dragIndex, setDragIndex] = useState<number | null>(null)
   const [dropIndex, setDropIndex] = useState<number | null>(null)
+  const isMobile = useIsMobile()
 
   const handleSlideClick = useCallback((id: string) => {
     onSlideSelect(id)
@@ -322,7 +324,7 @@ export function SlideSidebar({ slides, collapsed, onSlideSelect, onReorderSlides
     <div className="flex flex-col h-full">
       <header className={`flex items-center ${HEADER_PX} ${HEADER_PY} shrink-0`}>
         <div className="flex items-center gap-2">
-          <SidebarToggleButton collapsed={false} onClick={onToggleCollapse} />
+          {!isMobile && <SidebarToggleButton collapsed={false} onClick={onToggleCollapse} />}
           {onNewProject && <NewProjectButton onClick={onNewProject} />}
           {onImport && <ImportButton onClick={onImport} />}
           {onImportPdf && <ImportPdfButton onClick={onImportPdf} />}
@@ -459,7 +461,7 @@ export function SlideSidebar({ slides, collapsed, onSlideSelect, onReorderSlides
         </div>
       </div>
       {slides.length > 0 && (
-        <div className="shrink-0 border-t border-cream-300/60 px-3 py-1 flex items-center">
+        <div className={`shrink-0 border-t border-cream-300/60 px-3 py-1 flex items-center ${isMobile ? 'pb-3' : ''}`}>
           <span className="text-xs text-warm-700/50 font-medium">
             {slides.findIndex((s) => s.isCurrent) + 1}/{slides.length}
           </span>

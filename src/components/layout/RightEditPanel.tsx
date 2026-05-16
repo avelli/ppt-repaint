@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { EditTask } from '../../stores/editorStore'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 export type { EditTask }
 
@@ -160,6 +161,7 @@ function CandidateCard({ candidate, onClick, onRetry, onDelete }: {
 
 export function RightEditPanel({ collapsed, onToggleCollapse, candidates, onSelectCandidate, onSubmit, onOpenSettings, onRetry, onDelete, isGenerating }: RightEditPanelProps) {
   const [inputValue, setInputValue] = useState('')
+  const isMobile = useIsMobile()
 
   const handleSubmit = () => {
     const trimmed = inputValue.trim()
@@ -191,7 +193,7 @@ export function RightEditPanel({ collapsed, onToggleCollapse, candidates, onSele
         <span className="text-sm text-warm-700 font-medium truncate mr-2">本页待选</span>
         <div className="flex items-center gap-1.5">
           <SettingsButton onClick={onOpenSettings} />
-          <PanelToggleButton collapsed={false} onClick={onToggleCollapse} />
+          {!isMobile && <PanelToggleButton collapsed={false} onClick={onToggleCollapse} />}
         </div>
       </header>
 
@@ -218,7 +220,7 @@ export function RightEditPanel({ collapsed, onToggleCollapse, candidates, onSele
       </div>
 
       {/* Bottom Input Bar */}
-      <div className="shrink-0 border-t border-cream-300/60 px-3 py-3">
+      <div className={`shrink-0 border-t border-cream-300/60 px-3 py-3 ${isMobile ? 'pb-4' : ''}`}>
         <div className="flex items-end gap-2">
           <textarea
             rows={1}
